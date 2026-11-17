@@ -6,26 +6,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryScrollableTabRow
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.juhao.murexide.data.BotItem
 import com.juhao.murexide.data.InstructionItem
+import com.juhao.murexide.ui.components.CapsuleTabBar
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun InstructionPanel(
@@ -40,7 +38,7 @@ fun InstructionPanel(
     ) {
         if (isLoading && bots.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                MiuixLoadingIndicator(size = 24.dp)
             }
             return@Column
         }
@@ -49,8 +47,8 @@ fun InstructionPanel(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = "暂无指令",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 13.sp
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
             return@Column
@@ -60,22 +58,12 @@ fun InstructionPanel(
         val scope = rememberCoroutineScope()
 
         if (bots.size > 1) {
-            PrimaryScrollableTabRow(
+            CapsuleTabBar(
+                tabs = bots.map { it.name },
                 selectedTabIndex = pagerState.currentPage,
-                edgePadding = 4.dp,
-                containerColor = Color.Transparent,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                bots.forEachIndexed { index, bot ->
-                    Tab(
-                        selected = pagerState.currentPage == index,
-                        onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                        text = {
-                            Text(text = bot.name, maxLines = 1, fontSize = 13.sp)
-                        }
-                    )
-                }
-            }
+                onTabSelected = { index -> scope.launch { pagerState.animateScrollToPage(index) } },
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            )
         }
 
         HorizontalPager(
@@ -101,8 +89,8 @@ private fun InstructionListPage(
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 text = "暂无指令",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 13.sp
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
         }
         return
@@ -113,7 +101,7 @@ private fun InstructionListPage(
     ) {
         items(instructions, key = { it.id }) { item ->
             InstructionRow(item = item, onClick = { onItemClick(item) })
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+            HorizontalDivider()
         }
     }
 }
@@ -133,19 +121,19 @@ private fun InstructionRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = item.name,
-                fontSize = 14.sp,
+                style = MiuixTheme.textStyles.body2,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MiuixTheme.colorScheme.onBackground
             )
             if (item.desc.isNotEmpty()) {
                 Text(
                     text = item.desc,
-                    fontSize = 12.sp,
+                    style = MiuixTheme.textStyles.footnote2,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
         }
@@ -161,15 +149,16 @@ private fun InstructionTypeTag(type: Int) {
         5 -> "自定义"
         else -> "普通"
     }
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer
+    // 标签底色走 secondaryContainer，与 Miuix 状态标签的容器/前景配对一致
+    Box(
+        modifier = Modifier
+            .background(MiuixTheme.colorScheme.secondaryContainer, RoundedCornerShape(16.dp))
+            .padding(horizontal = 8.dp, vertical = 2.dp)
     ) {
         Text(
             text = label,
-            fontSize = 11.sp,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.onSecondaryContainer
         )
     }
 }

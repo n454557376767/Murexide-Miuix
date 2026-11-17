@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -70,6 +69,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import com.juhao.murexide.ui.components.MiuixSurface
+import top.yukonga.miuix.kmp.basic.TextButton
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
+import com.juhao.murexide.ui.components.MiuixFloatingActionButton
 
 private data class InviteBotToGroupUiState(
     val isLoading: Boolean = true,
@@ -193,7 +197,7 @@ class InviteBotToGroupActivity : ComponentActivity() {
                 val currentToken = token
                 if (currentToken == null) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        MiuixLoadingIndicator()
                     }
                 } else {
                     InviteBotToGroupScreen(
@@ -260,8 +264,8 @@ private fun InviteBotToGroupScreen(
                         if (botName.isNotBlank()) {
                             Text(
                                 botName,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MiuixTheme.textStyles.footnote1,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -293,16 +297,16 @@ private fun InviteBotToGroupScreen(
                         Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.weight(1f))
+                        Text(error, color = MiuixTheme.colorScheme.error, modifier = Modifier.weight(1f))
                         if (state.groups.isEmpty() && !state.isInviting) {
                             androidx.compose.material3.TextButton(onClick = viewModel::retry) { Text("重试") }
                         }
                     }
                 }
                 when {
-                    state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { MiuixLoadingIndicator() }
                     state.filteredGroups.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(if (state.query.isBlank()) "暂无可邀请的群聊" else "未找到相关群聊", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(if (state.query.isBlank()) "暂无可邀请的群聊" else "未找到相关群聊", color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
                     }
                     else -> LazyColumn(
                         modifier = Modifier.fillMaxSize(),
@@ -320,13 +324,13 @@ private fun InviteBotToGroupScreen(
                 }
             }
             if (state.selectedIds.isNotEmpty()) {
-                FloatingActionButton(
+                MiuixFloatingActionButton(
                     onClick = viewModel::invite,
                     modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 24.dp).navigationBarsPadding(),
                     shape = CircleShape
                 ) {
                     if (state.isInviting) {
-                        CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+                        MiuixLoadingIndicator(Modifier.size(24.dp), color = MiuixTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
                     } else {
                         Icon(AppIcons.Group, "邀请至所选群聊")
                     }
@@ -343,7 +347,7 @@ private fun InviteGroupRow(group: ForwardTarget, selected: Boolean, enabled: Boo
             .fillMaxWidth()
             .padding(vertical = 2.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.72f) else Color.Transparent)
+            .background(if (selected) MiuixTheme.colorScheme.primaryContainer.copy(alpha = 0.72f) else Color.Transparent)
             .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -352,16 +356,16 @@ private fun InviteGroupRow(group: ForwardTarget, selected: Boolean, enabled: Boo
         Avatar(url = group.avatarUrl, size = 52.dp)
         Text(
             group.displayName,
-            style = MaterialTheme.typography.titleMedium,
+            style = MiuixTheme.textStyles.title4,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
         )
-        Surface(
+        MiuixSurface(
             modifier = Modifier.size(22.dp),
             shape = CircleShape,
-            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
-            contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (selected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.surfaceContainerHigh,
+            contentColor = if (selected) MiuixTheme.colorScheme.onPrimary else MiuixTheme.colorScheme.onSurfaceVariantSummary
         ) {
             Box(contentAlignment = Alignment.Center) {
                 if (selected) Icon(AppIcons.Check, "已选择", Modifier.size(15.dp))

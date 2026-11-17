@@ -26,11 +26,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +41,7 @@ import coil.compose.LocalImageLoader
 import androidx.compose.ui.viewinterop.AndroidView
 import com.juhao.murexide.data.MessageItem
 import com.juhao.murexide.ui.components.Avatar
+import com.juhao.murexide.ui.components.MiuixBottomSheet
 import com.juhao.murexide.ui.theme.MurexideTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -54,6 +55,10 @@ import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
 import com.juhao.murexide.datastore.SettingsStorage
 import com.juhao.murexide.ui.settings.SettingsActivity
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private const val SCREENSHOT_TAG = "ScreenshotBottomSheet"
 
@@ -82,10 +87,6 @@ fun ScreenshotBottomSheet(
     val hideMyInfo by settingsStorage.screenshotHideMyInfoFlow.collectAsState(initial = false)
     val hideSessionInfo by settingsStorage.screenshotHideSessionInfoFlow.collectAsState(initial = false)
     val hideImages by settingsStorage.screenshotHideImagesFlow.collectAsState(initial = false)
-
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
 
     val screenshotImageLoader = remember {
         ImageLoader.Builder(context)
@@ -151,9 +152,9 @@ fun ScreenshotBottomSheet(
         }
     }
 
-    ModalBottomSheet(
-        sheetState = sheetState,
-        onDismissRequest = onDismiss
+    MiuixBottomSheet(
+        onDismissRequest = onDismiss,
+        skipPartiallyExpanded = true
     ) {
         Column(
             modifier = Modifier
@@ -238,11 +239,8 @@ private fun ScreenshotContent(
     val anonymousCache = remember { mutableMapOf<String, String>() }
     var counter by remember { mutableIntStateOf(0) }
     
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        shape = RoundedCornerShape(16.dp)
-    ) {
+    // 截图预览卡片：Miuix Card 自带 surfaceContainer 容器与圆角
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -256,14 +254,19 @@ private fun ScreenshotContent(
                 horizontalArrangement = Arrangement.Center
             ) {
                 if (hideSessionInfo) {
-                    Surface(
-                        modifier = Modifier.size(24.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surface
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MiuixTheme.colorScheme.surface),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(AppIcons.VisibilityOff, contentDescription = null, modifier = Modifier.size(16.dp))
-                        }
+                        Icon(
+                            imageVector = AppIcons.VisibilityOff,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MiuixTheme.colorScheme.onSurface
+                        )
                     }
                 } else {
                     Avatar(url = chatAvatar, size = 36.dp)
@@ -273,15 +276,15 @@ private fun ScreenshotContent(
                 Column {
                     Text(
                         text = if (hideSessionInfo) "会话" else chatName,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MiuixTheme.textStyles.body2,
                         fontWeight = FontWeight.Bold
                     )
                     if (!hideSessionInfo) {
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "ID:$chatId",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            style = MiuixTheme.textStyles.footnote2,
+                            color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                         )
                     }
                 }
@@ -290,7 +293,7 @@ private fun ScreenshotContent(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface),
+                    .background(MiuixTheme.colorScheme.surface),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 messages.forEachIndexed { index, message ->
@@ -333,8 +336,8 @@ private fun ScreenshotContent(
             ) {
                 Text(
                     text = "由 Murexide 生成",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                 )
             }
         }
@@ -352,17 +355,31 @@ private fun ScreenshotActionCard(
         modifier = Modifier.clickable { onClick() },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Surface(
-            modifier = Modifier.size(44.dp),
-            shape = RoundedCornerShape(22.dp),
-            color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .background(
+                    if (enabled) MiuixTheme.colorScheme.primary
+                    else MiuixTheme.colorScheme.secondaryContainer
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(icon, contentDescription = null, modifier = Modifier.size(22.dp))
-            }
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(22.dp),
+                tint = if (enabled) MiuixTheme.colorScheme.onPrimary
+                else MiuixTheme.colorScheme.onSecondaryContainer
+            )
         }
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = label, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Text(
+            text = label,
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 

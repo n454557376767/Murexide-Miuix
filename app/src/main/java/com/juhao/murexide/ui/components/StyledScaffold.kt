@@ -17,6 +17,7 @@ import dev.chrisbanes.haze.blur.HazeColorEffect
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,7 +73,7 @@ fun StyledScaffold(
     content: @Composable (PaddingValues) -> Unit
 ) {
     val hazeState = rememberHazeState()
-    val surfaceColor = MaterialTheme.colorScheme.surface
+    val surfaceColor = MiuixTheme.colorScheme.surface
     val supportsBlur = Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2
 
     val blurStyle = remember(surfaceColor) {

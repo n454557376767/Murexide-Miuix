@@ -3,6 +3,8 @@ package com.juhao.murexide.ui.chat
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -14,12 +16,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -39,6 +35,9 @@ import com.juhao.murexide.data.MessageItem
 import com.juhao.murexide.data.reconcileLoadedMessages
 import com.juhao.murexide.ui.components.Avatar
 import com.juhao.murexide.ui.icons.AppIcons
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
@@ -444,31 +443,32 @@ fun AnimatedScrollToBottomButton(
                 scaleY = animatedScale
             }
     ) {
-        BadgedBox(
-            badge = {
-                if (unreadCount > 0) {
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    ) {
-                        Text(
-                            text = if (unreadCount > 99) "99+" else unreadCount.toString(),
-                            fontSize = 10.sp
-                        )
-                    }
-                }
-            }
+        // Miuix 风格：圆形按钮 + 右上角未读角标（替代 BadgedBox + SmallFloatingActionButton）
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .background(MiuixTheme.colorScheme.surfaceContainerHigh, CircleShape)
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.Center
         ) {
-            SmallFloatingActionButton(
-                onClick = onClick,
-                shape = CircleShape,
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                contentColor = MaterialTheme.colorScheme.onSurface
+            Icon(
+                imageVector = if (loadNewerMode) AppIcons.Refresh else AppIcons.KeyboardArrowDown,
+                contentDescription = "滚动到底部",
+                modifier = Modifier.size(18.dp),
+                tint = MiuixTheme.colorScheme.onSurfaceContainer
+            )
+        }
+        if (unreadCount > 0) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .background(MiuixTheme.colorScheme.error, CircleShape)
+                    .padding(horizontal = 5.dp, vertical = 1.dp)
             ) {
-                Icon(
-                    imageVector = if (loadNewerMode) AppIcons.Refresh else AppIcons.KeyboardArrowDown,
-                    contentDescription = "滚动到底部",
-                    modifier = Modifier.size(18.dp)
+                Text(
+                    text = if (unreadCount > 99) "99+" else unreadCount.toString(),
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onError
                 )
             }
         }

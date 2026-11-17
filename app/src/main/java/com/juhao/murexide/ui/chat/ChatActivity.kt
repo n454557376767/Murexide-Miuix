@@ -6,12 +6,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.*
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,8 +30,11 @@ import com.juhao.murexide.data.ConversationKey
 import com.juhao.murexide.data.local.LocalCache
 import com.juhao.murexide.data.unreadTotal
 import com.juhao.murexide.repository.ConversationRepository
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
 import com.juhao.murexide.ui.theme.MurexideTheme
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 class ChatActivity : ComponentActivity() {
 
@@ -39,7 +42,6 @@ class ChatActivity : ComponentActivity() {
     private var searchTargetMsgSeq by mutableStateOf<Long?>(null)
     private var initialUnreadCount by mutableStateOf(0)
 
-    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -58,16 +60,21 @@ class ChatActivity : ComponentActivity() {
             MurexideTheme {
                 val account = accountState.value
                 if (account == null) {
-                    Surface {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                ContainedLoadingIndicator()
-                                Spacer(Modifier.height(6.dp))
-                                Text("马上就好...")
-                            }
+                    // Miuix 加载占位：整页用页面画布底色
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MiuixTheme.colorScheme.background),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            MiuixLoadingIndicator()
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                text = "马上就好...",
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                            )
                         }
                     }
                 } else {

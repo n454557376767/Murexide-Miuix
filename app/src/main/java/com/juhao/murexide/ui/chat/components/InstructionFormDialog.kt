@@ -1,21 +1,28 @@
 package com.juhao.murexide.ui.chat.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.juhao.murexide.data.InstructionItem
 import com.juhao.murexide.ui.components.*
+import com.juhao.murexide.ui.icons.AppIcons
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -75,40 +82,40 @@ fun InstructionFormDialog(
     val switchValues = remember { mutableStateMapOf<String, Boolean>() }
     val checkboxValues = remember { mutableStateMapOf<String, Set<String>>() }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(item.name) },
-        text = {
-            if (fields.isEmpty()) {
-                Text("该指令无可填写字段，直接发送即可。")
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 420.dp)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    fields.forEach { field ->
-                        FormFieldView(
-                            field = field,
-                            textValues = textValues,
-                            switchValues = switchValues,
-                            checkboxValues = checkboxValues
-                        )
-                    }
+    MiuixAlertDialog(
+        show = true,
+        title = item.name,
+        confirmText = "发送",
+        onConfirm = {
+            onSubmit(buildFormOutput(fields, textValues, switchValues, checkboxValues))
+        },
+        onDismissRequest = onDismiss
+    ) {
+        if (fields.isEmpty()) {
+            Text(
+                text = "该指令无可填写字段，直接发送即可。",
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                fields.forEach { field ->
+                    FormFieldView(
+                        field = field,
+                        textValues = textValues,
+                        switchValues = switchValues,
+                        checkboxValues = checkboxValues
+                    )
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                onSubmit(buildFormOutput(fields, textValues, switchValues, checkboxValues))
-            }) { Text("发送") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
         }
-    )
+    }
 }
 
 @Composable
@@ -121,9 +128,9 @@ private fun FormFieldView(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = field.title,
-            fontSize = 13.sp,
+            style = MiuixTheme.textStyles.footnote1,
             fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MiuixTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(4.dp))
         when (field.type) {
@@ -145,11 +152,32 @@ private fun FormFieldView(
                                 .padding(vertical = 2.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RadioButton(
-                                selected = selected == option,
-                                onClick = { textValues[field.id] = option }
+                            // 单选：主色圆点 + 勾，替代 Material RadioButton
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (selected == option) MiuixTheme.colorScheme.primary
+                                        else MiuixTheme.colorScheme.surfaceContainerHigh
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (selected == option) {
+                                    Icon(
+                                        imageVector = AppIcons.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(13.dp),
+                                        tint = MiuixTheme.colorScheme.onPrimary
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = option,
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.onBackground
                             )
-                            Text(option, fontSize = 13.sp)
                         }
                     }
                 }
@@ -169,25 +197,42 @@ private fun FormFieldView(
                                 .padding(vertical = 2.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Checkbox(
-                                checked = checked,
-                                onCheckedChange = { isChecked ->
-                                    checkboxValues[field.id] =
-                                        if (isChecked) current + option else current - option
+                            // 多选：圆角方块 + 勾
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(
+                                        if (checked) MiuixTheme.colorScheme.primary
+                                        else MiuixTheme.colorScheme.surfaceContainerHigh
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (checked) {
+                                    Icon(
+                                        imageVector = AppIcons.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(13.dp),
+                                        tint = MiuixTheme.colorScheme.onPrimary
+                                    )
                                 }
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = option,
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.onBackground
                             )
-                            Text(option, fontSize = 13.sp)
                         }
                     }
                 }
             }
             else -> { // input / textarea 及其他
-                OutlinedTextField(
+                MiuixTextField(
                     value = textValues[field.id] ?: field.default,
                     onValueChange = { textValues[field.id] = it },
-                    modifier = Modifier.fillMaxWidth(),
                     singleLine = field.type != "textarea",
-                    minLines = if (field.type == "textarea") 3 else 1
+                    minHeight = if (field.type == "textarea") 96 else 48
                 )
             }
         }

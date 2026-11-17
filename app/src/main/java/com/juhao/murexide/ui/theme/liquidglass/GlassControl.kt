@@ -25,6 +25,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tanh
 import com.juhao.murexide.ui.theme.liquidglass.InteractiveHighlight
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun Modifier.glassControl(
@@ -37,7 +38,7 @@ fun Modifier.glassControl(
     if (useGlassBar && liquidBackdrop != null) {
         val liquidGlassBlur = LocalLiquidGlassBlur.current
         
-        val color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.8f)
+        val color = MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.8f)
         
         val animationScope = rememberCoroutineScope()
     
@@ -99,7 +100,7 @@ fun Modifier.glassControl(
         
         border(
             width = 1.dp,
-            color = MaterialTheme.colorScheme.surfaceBright,
+            color = MiuixTheme.colorScheme.surfaceContainerHigh,
             shape = shape
         )
         .clip(shape)

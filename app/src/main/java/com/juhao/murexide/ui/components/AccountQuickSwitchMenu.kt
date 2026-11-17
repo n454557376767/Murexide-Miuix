@@ -43,6 +43,7 @@ import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun AccountQuickSwitchMenu(
@@ -73,7 +74,7 @@ fun AccountQuickSwitchMenu(
             text = {
                 Text(
                     text = "添加账号",
-                    style = MaterialTheme.typography.titleSmall
+                    style = MiuixTheme.textStyles.footnote1
                 )
             },
             onClick = {
@@ -86,7 +87,7 @@ fun AccountQuickSwitchMenu(
         )
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = 12.dp),
-            color = MaterialTheme.colorScheme.outlineVariant
+            color = MiuixTheme.colorScheme.dividerLine
         )
 
         Column(
@@ -111,14 +112,14 @@ fun AccountQuickSwitchMenu(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = account.username,
-                                    style = MaterialTheme.typography.titleSmall,
+                                    style = MiuixTheme.textStyles.footnote1,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     text = "ID: ${account.id}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MiuixTheme.textStyles.footnote2,
+                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -154,7 +155,7 @@ private fun QuickSwitchAvatar(account: UserAccount, isCurrentAccount: Boolean) {
             .then(
                 if (isCurrentAccount) {
                     Modifier
-                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                        .border(2.dp, MiuixTheme.colorScheme.primary, CircleShape)
                         .padding(2.dp)
                 } else {
                     Modifier
@@ -169,13 +170,13 @@ private fun QuickSwitchAvatar(account: UserAccount, isCurrentAccount: Boolean) {
                 modifier = Modifier
                     .size(if (isCurrentAccount) 36.dp else 40.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    .background(MiuixTheme.colorScheme.surfaceContainerHigh),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = AppIcons.Person,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
         }
@@ -232,10 +233,10 @@ fun AccountQuickSwitchGlassMenu(
                     )
                     .padding(8.dp),
             ) {
-                val glassColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.8f)
+                val glassColor = MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.8f)
                 ProvideLiquidGlassContentColor(
                     glassColor = glassColor,
-                    preferredColor = MaterialTheme.colorScheme.onSurface,
+                    preferredColor = MiuixTheme.colorScheme.onSurface,
                 ) {
                     GlassMenuItemRow(
                         leadingIcon = { Icon(AppIcons.Add, contentDescription = null) },
@@ -247,7 +248,7 @@ fun AccountQuickSwitchGlassMenu(
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 12.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant,
+                        color = MiuixTheme.colorScheme.dividerLine,
                     )
                     Column(
                         modifier = Modifier
@@ -299,7 +300,7 @@ private fun GlassMenuItemRow(
     ) {
         leadingIcon()
         Spacer(Modifier.width(12.dp))
-        Text(text = text, style = MaterialTheme.typography.titleSmall)
+        Text(text = text, style = MiuixTheme.textStyles.footnote1)
     }
 }
 
@@ -322,14 +323,14 @@ private fun GlassAccountRow(
         Column(modifier = Modifier.wrapContentWidth()) {
             Text(
                 text = account.username,
-                style = MaterialTheme.typography.titleSmall,
+                style = MiuixTheme.textStyles.footnote1,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = "ID: ${account.id}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MiuixTheme.textStyles.footnote2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )

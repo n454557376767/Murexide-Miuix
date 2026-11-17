@@ -24,6 +24,7 @@ import com.kyant.backdrop.effects.vibrancy
 import com.kyant.backdrop.highlight.Highlight
 import com.kyant.backdrop.shadow.InnerShadow
 import com.kyant.backdrop.shadow.Shadow
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 val LocalLiquidGlassEnabled = staticCompositionLocalOf { false }
 val LocalLiquidGlassBlur = staticCompositionLocalOf { 1f }
@@ -106,7 +107,7 @@ fun ProvideLiquidGlassContentColor(
         content()
         return
     }
-    val backgroundColor = MaterialTheme.colorScheme.background
+    val backgroundColor = MiuixTheme.colorScheme.background
     val contentColor = liquidGlassContentColor(
         preferredColor = preferredColor,
         glassColor = glassColor,

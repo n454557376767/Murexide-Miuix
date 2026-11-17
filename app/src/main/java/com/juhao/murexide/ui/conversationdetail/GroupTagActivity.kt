@@ -8,7 +8,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.juhao.murexide.datastore.AccountStorage
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
 import com.juhao.murexide.ui.theme.MurexideTheme
 import kotlinx.coroutines.launch
 
@@ -40,7 +40,7 @@ class GroupTagActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator()
+                        MiuixLoadingIndicator()
                     }
                 } else {
                     GroupTagScreen(

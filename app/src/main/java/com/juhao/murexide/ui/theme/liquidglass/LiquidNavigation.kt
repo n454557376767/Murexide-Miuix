@@ -66,6 +66,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sign
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private val LocalLiquidNavigationScale = compositionLocalOf { { 1f } }
 
@@ -86,16 +87,16 @@ fun LiquidBottomTabs(
     content: @Composable (index: Int, selected: Boolean, overlayPass: Boolean) -> Unit,
 ) {
     val blurScale = LocalLiquidGlassBlur.current
-    val isLightTheme = MaterialTheme.colorScheme.background.luminance() > 0.5f
+    val isLightTheme = MiuixTheme.colorScheme.background.luminance() > 0.5f
     val containerColor = if (isLightTheme) {
         Color(0xFFFAFAFA).copy(alpha = 0.6f)
     } else {
         Color(0xFF121212).copy(alpha = 0.6f)
     }
     val navigationContentColor = liquidGlassContentColor(
-        preferredColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        preferredColor = MiuixTheme.colorScheme.onSurfaceVariantSummary,
         glassColor = containerColor,
-        backgroundColor = MaterialTheme.colorScheme.background,
+        backgroundColor = MiuixTheme.colorScheme.background,
     )
     val tabsBackdrop = rememberLayerBackdrop()
 

@@ -32,6 +32,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.io.File
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.basic.TextButton
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
+import com.juhao.murexide.ui.components.MiuixLinearProgress
 
 @Composable
 fun PluginOverlay(pageId: String) {
@@ -147,7 +151,7 @@ fun PluginReplaceContent(pageId: String, pluginId: String, content: PluginConten
     Box(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(MiuixTheme.colorScheme.background)
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(16.dp)
     ) {
@@ -199,7 +203,7 @@ fun PluginContentRenderer(
             val hasOwnBg = content.background != null
             val bgModifier = if (hasOwnBg) {
                 Modifier.background(
-                    tint ?: MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.9f),
+                    tint ?: MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.9f),
                     RoundedCornerShape((content.radius ?: 8f).dp)
                 )
             } else {
@@ -207,7 +211,7 @@ fun PluginContentRenderer(
             }
             Text(
                 text = ctx.interpolate(content.value?.toString() ?: "") ?: "",
-                color = tint ?: MaterialTheme.colorScheme.onSurface,
+                color = tint ?: MiuixTheme.colorScheme.onSurface,
                 fontSize = (content.fontSize ?: 14f).sp,
                 modifier = mod
                     .then(bgModifier)
@@ -251,7 +255,7 @@ fun PluginContentRenderer(
             Icon(
                 imageVector = resolvePluginIcon(name),
                 contentDescription = null,
-                tint = tint ?: MaterialTheme.colorScheme.onSurface,
+                tint = tint ?: MiuixTheme.colorScheme.onSurface,
                 modifier = mod.size(((content.size ?: "24").toFloatOrNull() ?: 24f).dp)
             )
         }
@@ -333,9 +337,9 @@ fun PluginContentRenderer(
         }
         "progress" -> {
             if (content.indeterminate == true) {
-                CircularProgressIndicator(modifier = mod)
+                MiuixLoadingIndicator(modifier = mod)
             } else {
-                LinearProgressIndicator(
+                MiuixLinearProgress(
                     progress = { (content.value as? Number)?.toFloat() ?: 0f },
                     modifier = mod
                 )
@@ -347,7 +351,7 @@ fun PluginContentRenderer(
         "action" -> Unit
         else -> Text(
             text = "[未知类型: ${content.type}]",
-            color = MaterialTheme.colorScheme.error
+            color = MiuixTheme.colorScheme.error
         )
     }
 }
@@ -371,7 +375,7 @@ private fun PluginImage(
             modifier = modifier.size(size).clip(shape),
             contentScale = ContentScale.Crop
         )
-    } ?: Box(modifier.size(size).background(MaterialTheme.colorScheme.surfaceVariant, shape))
+    } ?: Box(modifier.size(size).background(MiuixTheme.colorScheme.surfaceVariant, shape))
 }
 
 private suspend fun loadPluginBitmap(ctx: PluginContext, src: String): Bitmap? =

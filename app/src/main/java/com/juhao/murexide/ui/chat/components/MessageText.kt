@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -22,13 +21,14 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun MessageText(
     text: String,
     bodyStyle: TextStyle,
     modifier: Modifier = Modifier,
-    linkColor: Color = MaterialTheme.colorScheme.primary,
+    linkColor: Color = MiuixTheme.colorScheme.primary,
     trailingReserveWidthPx: Int? = null
 ) {
     val density = LocalDensity.current

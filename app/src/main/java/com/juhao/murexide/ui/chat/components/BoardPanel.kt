@@ -16,23 +16,21 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryScrollableTabRow
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.juhao.murexide.data.BoardItem
+import com.juhao.murexide.ui.components.CapsuleTabBar
 import com.juhao.murexide.ui.components.MarkdownText
 import com.juhao.murexide.ui.components.LiteHtmlContent
 import com.juhao.murexide.ui.theme.resolvedLiquidGlassContentColor
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -51,31 +49,12 @@ fun BoardPanel(
 
     Column(modifier = modifier.fillMaxWidth()) {
         if (boards.size > 1) {
-            PrimaryScrollableTabRow(
+            CapsuleTabBar(
+                tabs = boards.map { it.botName.ifBlank { "看板" } },
                 selectedTabIndex = pagerState.currentPage,
-                edgePadding = 8.dp,
-                containerColor = Color.Transparent,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                boards.forEachIndexed { index, board ->
-                    Tab(
-                        selected = pagerState.currentPage == index,
-                        onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                        selectedContentColor = MaterialTheme.colorScheme.primary,
-                        unselectedContentColor = resolvedLiquidGlassContentColor(
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        ),
-                        text = {
-                            Text(
-                                text = board.botName.ifBlank { "看板" },
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                fontSize = 13.sp
-                            )
-                        }
-                    )
-                }
-            }
+                onTabSelected = { index -> scope.launch { pagerState.animateScrollToPage(index) } },
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            )
         }
 
         HorizontalPager(
@@ -93,9 +72,9 @@ private fun BoardContent(
     board: BoardItem,
     onImageClick: ((String) -> Unit)?
 ) {
-    val bodyContentColor = resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurface)
+    val bodyContentColor = resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onBackground)
     val secondaryContentColor =
-        resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurfaceVariant)
+        resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurfaceVariantSummary)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -108,15 +87,15 @@ private fun BoardContent(
             AutoMirroredIcon(
                 imageVector = AppIcons.VolumeUp,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MiuixTheme.colorScheme.primary,
                 modifier = Modifier.width(18.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = board.botName.ifBlank { "看板" },
-                style = MaterialTheme.typography.labelLarge,
+                style = MiuixTheme.textStyles.footnote1,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
+                color = MiuixTheme.colorScheme.primary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
@@ -124,7 +103,7 @@ private fun BoardContent(
             if (board.lastUpdateTime > 0) {
                 Text(
                     text = formatBoardTime(board.lastUpdateTime),
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MiuixTheme.textStyles.footnote2,
                     color = secondaryContentColor
                 )
             }
@@ -145,7 +124,7 @@ private fun BoardContent(
                 )
                 else -> Text(
                     text = board.content,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MiuixTheme.textStyles.body2,
                     color = bodyContentColor
                 )
             }

@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -33,6 +34,7 @@ import com.juhao.murexide.data.BaDetail
 import com.juhao.murexide.ui.community.PostCard
 import com.juhao.murexide.ui.community.detail.PostDetailActivity
 import com.juhao.murexide.ui.components.Avatar
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
 import com.juhao.murexide.ui.components.MiuixPageScaffold
 import com.juhao.murexide.ui.icons.AppIcons
 import com.juhao.murexide.ui.icons.AutoMirroredIcon

@@ -11,8 +11,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +23,10 @@ import com.juhao.murexide.datastore.AccountStorage
 import com.juhao.murexide.repository.ShareRepository
 import com.juhao.murexide.ui.chat.ChatActivity
 import com.juhao.murexide.ui.community.ba.BaDetailActivity
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
 import com.juhao.murexide.ui.theme.MurexideTheme
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlinx.coroutines.launch
 
 class ConversationDetailActivity : ComponentActivity() {
@@ -56,17 +57,23 @@ class ConversationDetailActivity : ComponentActivity() {
                     account == null -> Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
-                    ) { CircularProgressIndicator() }
+                    ) { MiuixLoadingIndicator() }
 
                     state is DetailState.Resolving -> Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
-                    ) { CircularProgressIndicator() }
+                    ) { MiuixLoadingIndicator() }
 
                     state is DetailState.Error -> Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
-                    ) { Text(state.message) }
+                    ) {
+                        Text(
+                            text = state.message,
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                        )
+                    }
 
                     state is DetailState.Ready -> ConversationDetailScreen(
                         onBack = { finish() },

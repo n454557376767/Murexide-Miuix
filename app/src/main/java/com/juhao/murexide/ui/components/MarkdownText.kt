@@ -59,12 +59,13 @@ import java.util.Collections
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 import androidx.core.net.toUri
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun MarkdownText(
     markdown: String,
     modifier: Modifier = Modifier,
-    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    textColor: Color = MiuixTheme.colorScheme.onSurface,
     backgroundColor: Color = Color.Transparent,
     onImageClick: ((String) -> Unit)? = null,
     imageReferer: String? = "https://myapp.jwznb.com",
@@ -129,7 +130,7 @@ fun MarkdownText(
                                                         AppIcons.CheckBoxOutlineBlank
                                                     },
                                                     contentDescription = if (run.checked) "checked task" else "unchecked task",
-                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    tint = MiuixTheme.colorScheme.primary,
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                                 Spacer(modifier = Modifier.width(6.dp))
@@ -225,12 +226,12 @@ private fun MarkdownBlockquote(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    val barColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+    val barColor = MiuixTheme.colorScheme.primary.copy(alpha = 0.6f)
     val paddingVertical = 6.dp
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(6.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f))
+            .background(MiuixTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f))
             .drawBehind {
                 val barWidth = 3.dp.toPx()
                 val barLeft = 6.dp.toPx()
@@ -354,31 +355,31 @@ private fun MarkdownText(
             }
         }
     }
-    val bodyStyle = MaterialTheme.typography.bodyMedium.copy(
+    val bodyStyle = MiuixTheme.textStyles.body2.copy(
         lineHeight = 22.sp
     )
     val typography = markdownTypography(
-        h1 = MaterialTheme.typography.headlineMedium.copy(
+        h1 = MiuixTheme.textStyles.title2.copy(
             fontWeight = FontWeight.Bold,
             lineHeight = 34.sp
         ),
-        h2 = MaterialTheme.typography.headlineSmall.copy(
+        h2 = MiuixTheme.textStyles.title2.copy(
             fontWeight = FontWeight.Bold,
             lineHeight = 30.sp
         ),
-        h3 = MaterialTheme.typography.titleMedium.copy(
+        h3 = MiuixTheme.textStyles.title4.copy(
             fontWeight = FontWeight.Bold,
             lineHeight = 24.sp
         ),
-        h4 = MaterialTheme.typography.titleSmall.copy(
+        h4 = MiuixTheme.textStyles.footnote1.copy(
             fontWeight = FontWeight.Bold,
             lineHeight = 22.sp
         ),
-        h5 = MaterialTheme.typography.titleSmall.copy(
+        h5 = MiuixTheme.textStyles.footnote1.copy(
             fontWeight = FontWeight.Bold,
             lineHeight = 22.sp
         ),
-        h6 = MaterialTheme.typography.labelLarge.copy(
+        h6 = MiuixTheme.textStyles.footnote1.copy(
             fontWeight = FontWeight.Bold,
             lineHeight = 20.sp
         ),
@@ -387,15 +388,15 @@ private fun MarkdownText(
         ordered = bodyStyle,
         bullet = bodyStyle,
         list = bodyStyle,
-        quote = bodyStyle.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
-        code = MaterialTheme.typography.bodySmall.copy(
+        quote = bodyStyle.copy(color = MiuixTheme.colorScheme.onSurfaceVariantSummary),
+        code = MiuixTheme.textStyles.footnote2.copy(
             fontFamily = FontFamily.Monospace,
             lineHeight = 20.sp
         ),
         inlineCode = bodyStyle.copy(fontFamily = FontFamily.Monospace),
         textLink = TextLinkStyles(
             style = SpanStyle(
-                color = MaterialTheme.colorScheme.primary,
+                color = MiuixTheme.colorScheme.primary,
                 fontWeight = FontWeight.Medium,
                 textDecoration = TextDecoration.Underline
             )
@@ -604,7 +605,7 @@ private fun CodeBlockComponent(
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .background(MiuixTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
     ) {
         Column(
             modifier = Modifier.width(IntrinsicSize.Max)
@@ -618,8 +619,8 @@ private fun CodeBlockComponent(
                 if (!language.isNullOrBlank()) {
                     Text(
                         text = language,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         fontFamily = FontFamily.Monospace
                     )
                 }
@@ -638,7 +639,7 @@ private fun CodeBlockComponent(
                     Icon(
                         imageVector = AppIcons.ContentCopy,
                         contentDescription = "复制代码",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -647,11 +648,11 @@ private fun CodeBlockComponent(
             val codeText: @Composable () -> Unit = {
                 Text(
                     text = code,
-                    style = MaterialTheme.typography.bodySmall.copy(
+                    style = MiuixTheme.textStyles.footnote2.copy(
                         fontFamily = FontFamily.Monospace,
                         lineHeight = 20.sp
                     ),
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MiuixTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .horizontalScroll(scrollState)
                         .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -1013,8 +1014,8 @@ private fun MarkdownDetailsBlock(
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f))
+            .border(1.dp, MiuixTheme.colorScheme.dividerLine, RoundedCornerShape(12.dp))
+            .background(MiuixTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f))
             .clickable {
                 expanded = !expanded
                 MarkdownRendererCache.setDetailsExpanded(detailsCacheKey, expanded)
@@ -1029,14 +1030,14 @@ private fun MarkdownDetailsBlock(
             Text(
                 text = summary,
                 color = textColor,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MiuixTheme.textStyles.body2,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.weight(1f)
             )
             Icon(
                 imageVector = if (expanded) AppIcons.KeyboardArrowUp else AppIcons.KeyboardArrowDown,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
         }
 

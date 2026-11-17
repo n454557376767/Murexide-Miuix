@@ -20,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
@@ -47,6 +46,7 @@ import com.juhao.murexide.ui.icons.AutoMirroredIcon
 import com.juhao.murexide.ui.theme.MurexideTheme
 import com.juhao.murexide.ui.components.*
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 class NewConversationActivity : ComponentActivity() {
 
@@ -125,7 +125,7 @@ private fun NewConversationScreen(
         ) {
             Text(
                 text = "选择会话类型",
-                style = MaterialTheme.typography.titleMedium
+                style = MiuixTheme.textStyles.title4
             )
 
             SingleChoiceSegmentedButtonRow(
@@ -149,7 +149,7 @@ private fun NewConversationScreen(
 
             Text(
                 text = currentOption.idLabel,
-                style = MaterialTheme.typography.titleMedium
+                style = MiuixTheme.textStyles.title4
             )
 
             OutlinedTextField(
@@ -175,7 +175,7 @@ private fun NewConversationScreen(
                     .height(52.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Text("添加", style = MaterialTheme.typography.titleMedium)
+                Text("添加", style = MiuixTheme.textStyles.title4)
             }
         }
     }

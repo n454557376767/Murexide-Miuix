@@ -3,7 +3,8 @@ package com.juhao.murexide.ui.components
 import com.juhao.murexide.ui.icons.AppIcons
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.runtime.*
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
@@ -17,6 +18,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtMost
 import androidx.compose.ui.util.lerp
 import com.kyant.backdrop.Backdrop
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Switch
 import com.juhao.murexide.ui.theme.liquidglass.InteractiveHighlight
 import com.kyant.backdrop.drawBackdrop
 import com.kyant.backdrop.effects.blur
@@ -41,11 +45,13 @@ fun StyledButton(
     content: @Composable RowScope.() -> Unit
 ) {
     if (backdrop == null) {
+        // 无玻璃背景时用 Miuix 按钮，液态玻璃路径仍走自绘实现
         Button(
-            content = content,
             onClick = onClick,
             modifier = modifier,
-            enabled = enabled
+            enabled = enabled,
+            colors = ButtonDefaults.buttonColorsPrimary(),
+            content = content
         )
     } else {
         val animationScope = rememberCoroutineScope()
@@ -140,20 +146,12 @@ fun StyledSwitch(
     enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
+    // Miuix Switch：默认外观已带 HyperOS 的滑块/轨道语义色，不再叠加 thumbContent
     Switch(
         checked = checked,
         onCheckedChange = onCheckedChange,
         enabled = enabled,
-        modifier = modifier,
-        thumbContent = {
-            if (checked) {
-                Icon(
-                    imageVector = AppIcons.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                )
-            }
-        },
+        modifier = modifier
     )
 }
 

@@ -202,7 +202,7 @@ private fun ContactDirectoryScreen(
                     modifier = Modifier.size(48.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(
+                    MiuixLoadingIndicator(
                         modifier = Modifier.size(22.dp),
                         strokeWidth = 2.dp,
                         color = MiuixTheme.colorScheme.primary
@@ -782,7 +782,7 @@ private fun RequestSurface(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (isProcessing) {
-                        CircularProgressIndicator(
+                        MiuixLoadingIndicator(
                             modifier = Modifier.size(20.dp),
                             strokeWidth = 2.dp
                         )
@@ -860,7 +860,7 @@ private fun RequestStatusPill(label: String) {
 @Composable
 private fun LoadingState(modifier: Modifier = Modifier) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        ContainedLoadingIndicator()
+        MiuixLoadingIndicator()
     }
 }
 

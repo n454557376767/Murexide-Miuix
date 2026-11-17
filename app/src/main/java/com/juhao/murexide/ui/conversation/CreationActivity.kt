@@ -36,6 +36,7 @@ import com.juhao.murexide.ui.icons.AutoMirroredIcon
 import com.juhao.murexide.ui.theme.MurexideTheme
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 class CreationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -109,18 +110,18 @@ fun CreationScreen(
         title = kind.title,
         onBack = onBack,
         floatingActionButton = {
-            FloatingActionButton(
+            MiuixFloatingActionButton(
                 onClick = viewModel::create,
                 shape = CircleShape,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
+                containerColor = MiuixTheme.colorScheme.primary,
+                contentColor = MiuixTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(56.dp),
                 content = {
                     if (state.isCreating) {
-                        CircularProgressIndicator(
+                        MiuixLoadingIndicator(
                             modifier = Modifier.size(24.dp),
                             strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MiuixTheme.colorScheme.onPrimary
                         )
                     } else {
                         Icon(AppIcons.Check, contentDescription = kind.title)
@@ -139,7 +140,7 @@ fun CreationScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                colors = CardDefaults.cardColors(containerColor = MiuixTheme.colorScheme.surfaceContainer)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -155,10 +156,10 @@ fun CreationScreen(
                                 kind = kind,
                                 size = 72.dp
                             )
-                            Surface(
+                            MiuixSurface(
                                 shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary,
+                                color = MiuixTheme.colorScheme.primary,
+                                contentColor = MiuixTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(24.dp)
                             ) {
                                 Icon(AppIcons.Edit, contentDescription = "选择头像", modifier = Modifier.padding(5.dp))
@@ -171,16 +172,16 @@ fun CreationScreen(
                                 onValueChange = viewModel::updateName,
                                 singleLine = true,
                                 enabled = !state.isCreating,
-                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                                textStyle = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                                cursorBrush = SolidColor(MiuixTheme.colorScheme.primary),
+                                textStyle = MiuixTheme.textStyles.title4.copy(color = MiuixTheme.colorScheme.onSurface),
                                 modifier = Modifier.fillMaxWidth(),
                                 decorationBox = { innerTextField ->
                                     Box(contentAlignment = Alignment.CenterStart) {
                                         if (state.name.isBlank()) {
                                             Text(
                                                 text = if (kind == CreationKind.GROUP) "群聊名称" else "机器人名称",
-                                                style = MaterialTheme.typography.titleMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                style = MiuixTheme.textStyles.title4,
+                                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                             )
                                         }
                                         innerTextField()
@@ -192,15 +193,15 @@ fun CreationScreen(
                     }
                     if (state.isUploadingAvatar) {
                         Spacer(Modifier.height(12.dp))
-                        LinearProgressIndicator(progress = { state.uploadProgress }, modifier = Modifier.fillMaxWidth())
+                        MiuixLinearProgress(progress = { state.uploadProgress }, modifier = Modifier.fillMaxWidth())
                     }
                     Spacer(Modifier.height(20.dp))
                     BasicTextField(
                         value = state.introduction,
                         onValueChange = viewModel::updateIntroduction,
                         enabled = !state.isCreating,
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                        cursorBrush = SolidColor(MiuixTheme.colorScheme.primary),
+                        textStyle = MiuixTheme.textStyles.body1.copy(color = MiuixTheme.colorScheme.onSurface),
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 96.dp),
@@ -209,8 +210,8 @@ fun CreationScreen(
                                 if (state.introduction.isBlank()) {
                                     Text(
                                         text = "介绍（可选）",
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        style = MiuixTheme.textStyles.body1,
+                                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                     )
                                 }
                                 innerTextField()
@@ -224,7 +225,7 @@ fun CreationScreen(
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text("私有机器人")
-                        Text("仅允许被添加后使用", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("仅允许被添加后使用", style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
                     }
                     StyledSwitch(
                         checked = state.isPrivate,
@@ -236,7 +237,7 @@ fun CreationScreen(
             state.error?.let {
                 Text(
                     text = it,
-                    color = MaterialTheme.colorScheme.error,
+                    color = MiuixTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 12.dp)
                 )
             }
@@ -256,11 +257,11 @@ private fun CreationAvatar(
         return
     }
 
-    Surface(
+    MiuixSurface(
         modifier = Modifier.size(size),
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        color = MiuixTheme.colorScheme.secondaryContainer,
+        contentColor = MiuixTheme.colorScheme.onSecondaryContainer
     ) {
         val initial = name.trim().firstOrNull()?.toString()
         Box(contentAlignment = Alignment.Center) {
@@ -273,7 +274,7 @@ private fun CreationAvatar(
             } else {
                 Text(
                     text = initial,
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MiuixTheme.textStyles.title2,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Clip

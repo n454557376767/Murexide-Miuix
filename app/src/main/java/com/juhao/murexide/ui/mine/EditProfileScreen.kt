@@ -5,15 +5,23 @@ import com.juhao.murexide.ui.icons.AutoMirroredIcon
 
 import android.widget.Toast
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -22,6 +30,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.juhao.murexide.ui.components.*
 import kotlinx.coroutines.Dispatchers
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -154,10 +169,7 @@ fun EditProfileScreen(
                 enabled = canSave
             ) {
                 if (isSaving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp
-                    )
+                    MiuixLoadingIndicator(size = 18.dp, strokeWidth = 2.dp)
                 } else {
                     Icon(
                         imageVector = AppIcons.Check,
@@ -175,7 +187,7 @@ fun EditProfileScreen(
                         .padding(paddingValues),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    MiuixLoadingIndicator()
                 }
             }
 
@@ -190,18 +202,22 @@ fun EditProfileScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "资料加载失败",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
+                            style = MiuixTheme.textStyles.title4,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MiuixTheme.colorScheme.onBackground
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = state.message,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(20.dp))
-                        FilledTonalButton(onClick = viewModel::loadUserInfo) {
+                        Button(
+                            onClick = viewModel::loadUserInfo,
+                            colors = ButtonDefaults.buttonColorsPrimary()
+                        ) {
                             Icon(AppIcons.Refresh, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("重新加载")
@@ -321,8 +337,8 @@ private fun EditProfileContent(
 
         Text(
             text = "完善公开资料，让大家更好地认识你",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             modifier = Modifier.padding(horizontal = 4.dp)
         )
 
@@ -333,31 +349,21 @@ private fun EditProfileContent(
             title = "基本资料",
             description = "昵称、签名、生日与性别会展示在个人主页"
         ) {
-            OutlinedTextField(
+            MiuixTextField(
                 value = nickname,
                 onValueChange = onNicknameChange,
-                label = { Text("昵称") },
-                leadingIcon = {
-                    Icon(AppIcons.Person, contentDescription = null)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
+                placeholder = "昵称",
                 enabled = enabled,
                 singleLine = true
             )
 
-            OutlinedTextField(
+            MiuixTextField(
                 value = introduction,
                 onValueChange = onIntroductionChange,
-                label = { Text("个性签名") },
-                leadingIcon = {
-                    Icon(AppIcons.FormatQuote, contentDescription = null)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
+                placeholder = "个性签名",
                 enabled = enabled,
-                minLines = 3,
-                maxLines = 5
+                singleLine = false,
+                minHeight = 96
             )
 
             ProfilePickerField(
@@ -371,40 +377,26 @@ private fun EditProfileContent(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = "性别",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    // FilterChip 换成 Miuix 按钮：选中态主色、未选中次级色，三个等宽
                     listOf(1 to "男", 2 to "女", 3 to "其他").forEach { (value, label) ->
                         val selected = gender == value
-                        FilterChip(
-                            selected = selected,
+                        Button(
                             onClick = { onGenderChange(value) },
-                            label = {
-                                Text(
-                                    text = label,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Center
-                                )
-                            },
-                            leadingIcon = if (selected) {
-                                {
-                                    Icon(
-                                        imageVector = AppIcons.Check,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(FilterChipDefaults.IconSize)
-                                    )
-                                }
-                            } else {
-                                null
-                            },
-                            modifier = Modifier.weight(1f),
-                            enabled = enabled
-                        )
+                            enabled = enabled,
+                            colors = if (selected) ButtonDefaults.buttonColorsPrimary()
+                            else ButtonDefaults.buttonColors(),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(label)
+                        }
                     }
                 }
             }
@@ -438,27 +430,22 @@ private fun ProfileSectionCard(
     description: String,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    shape = RoundedCornerShape(14.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(MiuixTheme.colorScheme.primaryContainer)
+                        .padding(10.dp)
                 ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(10.dp)
+                        tint = MiuixTheme.colorScheme.onPrimaryContainer
                     )
                 }
 
@@ -467,14 +454,15 @@ private fun ProfileSectionCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        style = MiuixTheme.textStyles.title4,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MiuixTheme.colorScheme.onSurfaceContainer
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                     )
                 }
             }
@@ -492,26 +480,21 @@ private fun ProfileInlinePickerCard(
     onClick: () -> Unit,
     enabled: Boolean
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
-                shape = RoundedCornerShape(14.dp),
-                color = MaterialTheme.colorScheme.primaryContainer
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MiuixTheme.colorScheme.primaryContainer)
+                    .padding(10.dp)
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(10.dp)
+                    tint = MiuixTheme.colorScheme.onPrimaryContainer
                 )
             }
 
@@ -542,11 +525,11 @@ private fun ProfilePickerField(
     trailingContentDescription: String = "选择$label",
     modifier: Modifier = Modifier
 ) {
-    OutlinedCard(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+    // 外层已经是 Miuix Card，这里不再套第二层卡片，只保留可点击的整行
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled, onClick = onClick)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -556,27 +539,27 @@ private fun ProfilePickerField(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
                 Spacer(modifier = Modifier.width(16.dp))
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer
                 )
             }
             Icon(
                 imageVector = trailingIcon,
                 contentDescription = trailingContentDescription,
-                tint = MaterialTheme.colorScheme.primary
+                tint = MiuixTheme.colorScheme.primary
             )
         }
     }

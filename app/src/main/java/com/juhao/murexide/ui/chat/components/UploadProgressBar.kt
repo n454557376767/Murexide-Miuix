@@ -9,13 +9,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.juhao.murexide.ui.components.MiuixLinearProgress
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun UploadProgressBar(
@@ -38,14 +42,14 @@ fun UploadProgressBar(
             ) {
                 Text(
                     text = "正在上传...",
-                    fontSize = 14.sp,
+                    style = MiuixTheme.textStyles.footnote1,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MiuixTheme.colorScheme.onBackground
                 )
                 Text(
                     text = imagePath.substringAfterLast("/"),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     maxLines = 1
                 )
             }
@@ -62,13 +66,12 @@ fun UploadProgressBar(
             }
         }
         
-        LinearProgressIndicator(
-            progress = { progress.coerceIn(0f, 1f) },
+        // Miuix 线性进度：前景 primary、轨道 secondaryContainer，与 Miuix 进度语义色一致
+        MiuixLinearProgress(
+            progress = progress.coerceIn(0f, 1f),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(3.dp),
-            color = MaterialTheme.colorScheme.onSurface,
-            trackColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+                .height(3.dp)
         )
     }
 }

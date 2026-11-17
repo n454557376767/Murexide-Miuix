@@ -6,7 +6,6 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -19,23 +18,24 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.juhao.murexide.ui.components.litehtml.LiteHtmlView
 import com.juhao.murexide.ui.components.litehtml.HtmlRenderPolicy
 import com.juhao.murexide.utils.UrlSchemeHandler
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** Renders a static YunHu HTML message with litehtml and no browser runtime. */
 @Composable
 fun LiteHtmlContent(
     htmlContent: String,
     modifier: Modifier = Modifier,
-    backgroundColor: Color = MaterialTheme.colorScheme.surface,
-    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    backgroundColor: Color = MiuixTheme.colorScheme.surface,
+    textColor: Color = MiuixTheme.colorScheme.onSurface,
     onImageClick: ((String) -> Unit)? = null,
     onLinkClick: ((String) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
     val darkTheme = isSystemInDarkTheme()
-    val linkColor = MaterialTheme.colorScheme.primary
-    val codeColor = MaterialTheme.colorScheme.surfaceVariant
-    val borderColor = MaterialTheme.colorScheme.outlineVariant
+    val linkColor = MiuixTheme.colorScheme.primary
+    val codeColor = MiuixTheme.colorScheme.secondaryContainer
+    val borderColor = MiuixTheme.colorScheme.dividerLine
     val fontSize = (14f * density.fontScale).coerceAtLeast(12f)
 
     val css = remember(

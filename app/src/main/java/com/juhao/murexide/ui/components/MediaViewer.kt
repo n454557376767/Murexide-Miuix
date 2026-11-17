@@ -88,6 +88,8 @@ import kotlinx.parcelize.Parcelize
 import okhttp3.Request
 import java.io.File
 import java.util.Collections
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
 
 enum class MediaViewerKind { IMAGE, VIDEO }
 
@@ -322,7 +324,7 @@ private fun MediaViewerScreen(
                 Text(
                     text = "${pagerState.currentPage + 1} / ${items.size}",
                     color = Color.White,
-                    style = MaterialTheme.typography.labelLarge
+                    style = MiuixTheme.textStyles.footnote1
                 )
                 Row {
                     IconButton(onClick = {
@@ -498,7 +500,7 @@ private fun ZoomableImagePage(
                         contentScale = ContentScale.Fit
                     )
                 } else {
-                    CircularProgressIndicator(color = Color.White)
+                    MiuixLoadingIndicator(color = Color.White)
                 }
             }
             is AsyncImagePainter.State.Error -> {
@@ -509,12 +511,12 @@ private fun ZoomableImagePage(
                     Text(
                         text = "图片加载失败",
                         color = Color.White,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MiuixTheme.textStyles.body1
                     )
                     Text(
                         text = item.url,
                         color = Color.White.copy(alpha = 0.72f),
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MiuixTheme.textStyles.footnote2,
                         modifier = Modifier.padding(horizontal = 24.dp)
                     )
                 }

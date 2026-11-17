@@ -28,6 +28,8 @@ import com.juhao.murexide.ui.components.*
 import com.juhao.murexide.ui.icons.AppIcons
 import com.juhao.murexide.ui.theme.MurexideTheme
 import java.io.File
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.basic.TextButton
 
 class PluginManagerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -580,13 +582,13 @@ fun PluginManagerScreen(onBack: () -> Unit) {
                 Icon(
                     AppIcons.Warning,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MiuixTheme.colorScheme.error
                 )
             },
             title = {
                 Text(
                     "安全提示",
-                    color = MaterialTheme.colorScheme.error
+                    color = MiuixTheme.colorScheme.error
                 )
             },
             text = { Text("插件可能修改页面、发起网络请求或打开外部链接，请确认插件安全后导入。") },
@@ -596,7 +598,7 @@ fun PluginManagerScreen(onBack: () -> Unit) {
                     pendingInstall?.let { doInstall(it) }
                     pendingInstall = null
                 }) {
-                    Text("确认导入", color = MaterialTheme.colorScheme.error)
+                    Text("确认导入", color = MiuixTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -661,7 +663,7 @@ fun PluginManagerScreen(onBack: () -> Unit) {
                 ) {
                     Text(
                         logsText.ifBlank { "暂无日志" },
-                        style = MaterialTheme.typography.bodySmall
+                        style = MiuixTheme.textStyles.footnote2
                     )
                 }
             },
@@ -702,7 +704,7 @@ fun PluginManagerScreen(onBack: () -> Unit) {
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
+            MiuixFloatingActionButton(
                 onClick = { importLauncher.launch(arrayOf("application/zip")) }
             ) {
                 Icon(AppIcons.Add, "导入插件")
@@ -750,7 +752,7 @@ private fun PluginCard(
     context: Context,
     onShowLogs: () -> Unit
 ) {
-    Surface(
+    MiuixSurface(
         onClick = {
             PluginManager.setEnabled(context, manifest.id, !manifest.enabled)
             Toast.makeText(
@@ -764,7 +766,7 @@ private fun PluginCard(
             .padding(horizontal = 16.dp)
             .alpha(if (manifest.enabled) 1f else 0.6f),
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer
+        color = MiuixTheme.colorScheme.surfaceContainer
     ) {
         Column {
             Column(
@@ -772,13 +774,13 @@ private fun PluginCard(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                Text(manifest.name, style = MaterialTheme.typography.titleMedium)
+                Text(manifest.name, style = MiuixTheme.textStyles.title4)
                 if (!manifest.description.isNullOrBlank()) {
                     Spacer(Modifier.height(4.dp))
                     Text(
                         manifest.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         maxLines = 2
                     )
                 }
@@ -786,28 +788,28 @@ private fun PluginCard(
                 val storageSize = PluginStorage(context, manifest.id).size()
                 Text(
                     "v${manifest.version} · ${manifest.rules.size} 规则 · ${manifest.functions.size} 功能 · 存储 ${formatSize(storageSize)}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
                 if (manifest.permissions.isNotEmpty()) {
                     Spacer(Modifier.height(4.dp))
                     Text(
                         "权限: " + manifest.permissions.joinToString("、") { PluginPermissions.label(it) },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
                 if (!manifest.author.isNullOrBlank()) {
                     Spacer(Modifier.height(2.dp))
                     Text(
                         "作者: ${manifest.author}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
             }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            HorizontalDivider(color = MiuixTheme.colorScheme.dividerLine)
 
             Row(
                 Modifier
@@ -831,11 +833,11 @@ private fun PluginCard(
                         Icon(
                             AppIcons.Delete,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
+                            tint = MiuixTheme.colorScheme.error,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(4.dp))
-                        Text("卸载", color = MaterialTheme.colorScheme.error)
+                        Text("卸载", color = MiuixTheme.colorScheme.error)
                     }
                 }
                 StyledSwitch(

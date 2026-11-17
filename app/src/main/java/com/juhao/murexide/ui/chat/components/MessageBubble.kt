@@ -23,7 +23,12 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+androidx.compose.foundation.text.selection.SelectionContainer
+top.yukonga.miuix.kmp.basic.Button
+top.yukonga.miuix.kmp.basic.ButtonDefaults
+top.yukonga.miuix.kmp.basic.Icon
+top.yukonga.miuix.kmp.basic.IconButton
+top.yukonga.miuix.kmp.basic.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,6 +83,8 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.roundToInt
 import androidx.core.graphics.toColorInt
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.basic.TextButton
 
 private val WhiteThemeIncomingBubbleColor = Color(0xFFEEEEF0)
 private val IMG_SRC_REGEX = Regex("""<img[^>]+src\s*=\s*["']([^"']+)["'][^>]*>""", RegexOption.IGNORE_CASE)
@@ -145,13 +152,13 @@ fun MessageBubble(
 
     val incomingBubbleColor = when {
         isWhiteLightTheme -> WhiteThemeIncomingBubbleColor
-        isWhiteDarkTheme -> MaterialTheme.colorScheme.surfaceContainerHigh
-        else -> MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp).copy(alpha = bubbleOpacity)
+        isWhiteDarkTheme -> MiuixTheme.colorScheme.surfaceContainerHigh
+        else -> MiuixTheme.colorScheme.surfaceColorAtElevation(8.dp).copy(alpha = bubbleOpacity)
     }
     val incomingAttachmentBackgroundColor = when {
         isWhiteLightTheme -> WhiteThemeIncomingBubbleColor
-        isWhiteDarkTheme -> MaterialTheme.colorScheme.surfaceContainerHigh
-        else -> MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp)
+        isWhiteDarkTheme -> MiuixTheme.colorScheme.surfaceContainerHigh
+        else -> MiuixTheme.colorScheme.surfaceColorAtElevation(8.dp)
     }
 
     val context = LocalContext.current
@@ -178,8 +185,8 @@ fun MessageBubble(
 
     val highlightColor by animateColorAsState(
         targetValue = when {
-            isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-            isHighlighted -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+            isSelected -> MiuixTheme.colorScheme.primary.copy(alpha = 0.3f)
+            isHighlighted -> MiuixTheme.colorScheme.primary.copy(alpha = 0.2f)
             else -> Color.Transparent
         },
         animationSpec = tween(durationMillis = 250),
@@ -270,15 +277,15 @@ private fun TipContent(content: String) {
             .padding(horizontal = 8.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center
     ) {
-        Surface(
+        MiuixSurface(
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
-            contentColor = MaterialTheme.colorScheme.onSurface,
+            color = MiuixTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
+            contentColor = MiuixTheme.colorScheme.onSurface,
         ) {
             Text(
                 text = content,
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodySmall,
+                style = MiuixTheme.textStyles.footnote2,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
             )
         }
@@ -375,7 +382,7 @@ private fun MessageBubbleBody(
 
         Box(modifier = Modifier.weight(1f, fill = false)) {
             val cardColor = if (isMine)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = bubbleOpacity)
+                MiuixTheme.colorScheme.primaryContainer.copy(alpha = bubbleOpacity)
             else
                 incomingBubbleColor
 
@@ -430,8 +437,8 @@ private fun MessageBubbleBody(
                                 message.cmdName?.let {
                                     Text(
                                         text = "/$it",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                        style = MiuixTheme.textStyles.footnote2,
+                                        color = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                     )
                                 }
     
@@ -551,13 +558,13 @@ private fun SenderHeader(
     ) {
         Text(
             text = displayName,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary,
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold
         )
 
         if (roleLabel != null) {
-            val roleColor = if (roleLabel == "群主") Color(0xFFE6A23C) else MaterialTheme.colorScheme.tertiary
+            val roleColor = if (roleLabel == "群主") Color(0xFFE6A23C) else MiuixTheme.colorScheme.primary
             TagChip(
                 text = roleLabel,
                 containerColor = roleColor.copy(alpha = 0.2f),
@@ -569,8 +576,8 @@ private fun SenderHeader(
         if (message.senderType == 3) {
             TagChip(
                 text = "机器人",
-                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                contentColor = MaterialTheme.colorScheme.primary,
+                containerColor = MiuixTheme.colorScheme.primary.copy(alpha = 0.2f),
+                contentColor = MiuixTheme.colorScheme.primary,
                 type = 1
             )
         }
@@ -581,7 +588,7 @@ private fun SenderHeader(
                 TagChip(
                     text = tag.text,
                     containerColor = color.copy(alpha = 0.2f),
-                    contentColor = lerp(color, MaterialTheme.colorScheme.onSurface, 0.5f)
+                    contentColor = lerp(color, MiuixTheme.colorScheme.onSurface, 0.5f)
                 )
             }
         }
@@ -590,10 +597,10 @@ private fun SenderHeader(
 
 @Composable
 private fun PlaceholderAvatar() {
-    Surface(
+    MiuixSurface(
         modifier = Modifier.size(AVATAR_SIZE_DP.dp),
         shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer
+        color = MiuixTheme.colorScheme.surfaceContainer
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(AppIcons.Person, contentDescription = null, modifier = Modifier.size(24.dp))
@@ -773,8 +780,8 @@ private fun MessageContentRouter(
     if (message.isRecalled) {
         Text(
             text = message.getRecallDisplayContent() + reserve,
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = MaterialTheme.colorScheme.onSurface
+            style = MiuixTheme.textStyles.footnote2.copy(
+                color = MiuixTheme.colorScheme.onSurface
             )
         )
         return
@@ -783,8 +790,8 @@ private fun MessageContentRouter(
     when (message.contentType) {
         MessageItem.CONTENT_TYPE_TEXT -> MessageText(
             text = message.content,
-            bodyStyle = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onSurface
+            bodyStyle = MiuixTheme.textStyles.body2.copy(
+                color = MiuixTheme.colorScheme.onSurface
             ),
             trailingReserveWidthPx = textReserveWidthPx
         )
@@ -869,7 +876,7 @@ private fun HtmlContent(
             )
         },
         backgroundColor = if (isMine)
-            MaterialTheme.colorScheme.primaryContainer
+            MiuixTheme.colorScheme.primaryContainer
         else
             incomingAttachmentBackgroundColor
     )
@@ -890,7 +897,7 @@ private fun AudioContent(
     val durationText = formatAudioDuration(audioDuration)
     val audioWidth = (120 + audioDuration * 4).coerceIn(120, 240).dp
 
-    Surface(
+    MiuixSurface(
         modifier = Modifier
             .width(audioWidth)
             .height(48.dp)
@@ -901,7 +908,7 @@ private fun AudioContent(
                 }
             },
         shape = RoundedCornerShape(16.dp),
-        color = if (isMine) MaterialTheme.colorScheme.primaryContainer else incomingAttachmentBackgroundColor
+        color = if (isMine) MiuixTheme.colorScheme.primaryContainer else incomingAttachmentBackgroundColor
     ) {
         Row(
             modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
@@ -911,13 +918,13 @@ private fun AudioContent(
                 imageVector = if (isPlaying) AppIcons.Pause else AppIcons.PlayArrow,
                 contentDescription = if (isPlaying) "暂停语音" else "播放语音",
                 modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurface
+                tint = MiuixTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = durationText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurface,
                 maxLines = 1
             )
         }
@@ -1038,7 +1045,7 @@ private fun HiddenMediaPlaceholder(
     contentType: Int,
     incomingAttachmentBackgroundColor: Color
 ) {
-    Surface(
+    MiuixSurface(
         modifier = Modifier.fillMaxWidth().height(120.dp),
         color = incomingAttachmentBackgroundColor
     ) {
@@ -1051,7 +1058,7 @@ private fun HiddenMediaPlaceholder(
                 AppIcons.ImageNotSupported,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.onSurface
+                tint = MiuixTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -1060,8 +1067,8 @@ private fun HiddenMediaPlaceholder(
                     MessageItem.CONTENT_TYPE_VIDEO -> "视频已隐藏"
                     else -> "图片已隐藏"
                 },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface
+                style = MiuixTheme.textStyles.footnote2,
+                color = MiuixTheme.colorScheme.onSurface
             )
         }
     }
@@ -1077,13 +1084,13 @@ private fun BoxScope.MediaLoadingIcon(isVideoMessage: Boolean, isImageMessage: B
         },
         contentDescription = null,
         modifier = Modifier.size(28.dp).align(Alignment.Center),
-        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+        tint = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.45f)
     )
 }
 
 @Composable
 private fun BoxScope.VideoPlayOverlay() {
-    Surface(
+    MiuixSurface(
         modifier = Modifier.size(48.dp).align(Alignment.Center),
         shape = CircleShape,
         color = Color.Black.copy(alpha = 0.5f)
@@ -1147,10 +1154,10 @@ private fun FileContent(
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Surface(
+        MiuixSurface(
             shape = CircleShape,
             onClick = { onDownloadClick(message) },
-            color = MaterialTheme.colorScheme.primary,
+            color = MiuixTheme.colorScheme.primary,
             modifier = Modifier.size(40.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
@@ -1166,14 +1173,14 @@ private fun FileContent(
                             label = "rotation"
                         )
 
-                    CircularProgressIndicator(
+                    MiuixLoadingIndicator(
                         progress = { animatedProgress.coerceIn(0.01f, 1f) },
                         modifier = Modifier
                             .fillMaxSize()
                             .size(36.dp)
                             .graphicsLayer { rotationZ = rotation },
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        trackColor = MaterialTheme.colorScheme.primary,
+                        color = MiuixTheme.colorScheme.onPrimary,
+                        trackColor = MiuixTheme.colorScheme.primary,
                         strokeWidth = 3.dp
                     )
                 }
@@ -1183,19 +1190,19 @@ private fun FileContent(
                         imageVector = AppIcons.Close,
                         contentDescription = "取消下载",
                         modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.onPrimary
+                        tint = MiuixTheme.colorScheme.onPrimary
                     )
                     isComplete -> Icon(
                         imageVector = getFileIcon(fileName),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.onPrimary
+                        tint = MiuixTheme.colorScheme.onPrimary
                     )
                     else -> Icon(
                         imageVector = AppIcons.Download,
                         contentDescription = "下载",
                         modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.onPrimary
+                        tint = MiuixTheme.colorScheme.onPrimary
                     )
                 }
             }
@@ -1211,7 +1218,7 @@ private fun FileContent(
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MiuixTheme.colorScheme.onSurface
             )
 
             Row(modifier = Modifier.padding(top = 2.dp)) {
@@ -1220,7 +1227,7 @@ private fun FileContent(
                         text = formatFileSize(size),
                         fontSize = 12.sp,
                         lineHeight = 18.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        color = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         modifier = Modifier.padding(end = 4.dp)
                     )
                 }
@@ -1230,14 +1237,14 @@ private fun FileContent(
                         text = "${(progress * 100).toInt()}%",
                         fontSize = 12.sp,
                         lineHeight = 18.sp,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MiuixTheme.colorScheme.primary
                     )
                 } else if (isComplete) {
                     Text(
                         text = "已下载",
                         fontSize = 12.sp,
                         lineHeight = 18.sp,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MiuixTheme.colorScheme.primary
                     )
                 }
             }
@@ -1273,20 +1280,20 @@ private fun PostCard(
         Text(
             postTitle,
             fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.titleMedium
+            style = MiuixTheme.textStyles.title4
         )
         Spacer(Modifier.height(6.dp))
         Text(
             postContent,
             maxLines = 5,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyMedium
+            style = MiuixTheme.textStyles.body2
         )
         Spacer(Modifier.height(6.dp))
         Text(
             "点击查看文章详情",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary
+            style = MiuixTheme.textStyles.body2,
+            color = MiuixTheme.colorScheme.primary
         )
     }
 }
@@ -1295,8 +1302,8 @@ private fun PostCard(
 private fun UnsupportedContent(contentType: Int) {
     Text(
         text = "暂不支持解析此消息：$contentType",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+        style = MiuixTheme.textStyles.body2,
+        color = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.8f)
     )
 }
 
@@ -1313,7 +1320,7 @@ private fun MessageFooter(
             fontSize = 10.sp,
             lineHeight = 16.sp,
             maxLines = 1,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            color = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.7f)
         )
         if (isEdited && !isRecalled) {
             Text(
@@ -1321,7 +1328,7 @@ private fun MessageFooter(
                 fontSize = 10.sp,
                 lineHeight = 16.sp,
                 maxLines = 1,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                color = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 modifier = Modifier.padding(start = 4.dp)
             )
         }
@@ -1345,14 +1352,14 @@ private fun QuoteCard(
     val quoteText = message.quoteMsgText ?: return
     val context = LocalContext.current
 
-    Surface(
+    MiuixSurface(
         modifier = modifier.padding(bottom = 4.dp),
         onClick = {
             if (!isSelectionMode && !message.quoteMsgId.isNullOrBlank() && onQuoteClick != null) {
                 onQuoteClick(message)
             }
         },
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+        color = MiuixTheme.colorScheme.primary.copy(alpha = 0.12f),
         shape = RoundedCornerShape(6.dp)
     ) {
         Row(
@@ -1363,7 +1370,7 @@ private fun QuoteCard(
                 modifier = Modifier
                     .width(3.dp)
                     .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(MiuixTheme.colorScheme.primary)
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -1387,10 +1394,10 @@ private fun QuoteCard(
                 }
                 Text(
                     text = if (hideSenderInfo) processQuoteText(quoteText) else quoteText,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MiuixTheme.textStyles.footnote2,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MiuixTheme.colorScheme.onSurface
                 )
             }
         }
@@ -1404,7 +1411,7 @@ private fun TagChip(
     contentColor: Color,
     type: Int? = null
 ) {
-    Surface(shape = RoundedCornerShape(50.dp), color = containerColor) {
+    MiuixSurface(shape = RoundedCornerShape(50.dp), color = containerColor) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Spacer(Modifier.width(6.dp))
             type?.let {
@@ -1427,7 +1434,7 @@ private fun TagChip(
             }
             Text(
                 text = text,
-                style = MaterialTheme.typography.labelSmall,
+                style = MiuixTheme.textStyles.footnote2,
                 color = contentColor,
                 maxLines = 1,
                 modifier = Modifier.padding(vertical = 2.dp)
@@ -1464,11 +1471,11 @@ private fun MessageButtons(
                         MessageButton.ACTION_COPY -> AppIcons.ContentCopy
                         else -> null
                     }
-                    OutlinedButton(
+                    // Miuix 次级按钮替代 OutlinedButton
+                    Button(
                         onClick = { onButtonClick(button) },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(10.dp),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                        colors = ButtonDefaults.buttonColors(),
+                        modifier = Modifier.weight(1f)
                     ) {
                         if (leadingIcon != null) {
                             Icon(
@@ -1480,7 +1487,7 @@ private fun MessageButtons(
                         }
                         Text(
                             text = button.text,
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MiuixTheme.textStyles.footnote1,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -1494,7 +1501,7 @@ private fun MessageButtons(
 @Composable
 fun QuarterCircleCorner(
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primaryContainer,
+    color: Color = MiuixTheme.colorScheme.primaryContainer,
     size: Dp = 16.dp,
     isMine: Boolean,
     defaultLayoutDirection: LayoutDirection = LayoutDirection.Ltr
@@ -1528,24 +1535,23 @@ private fun SelectTextDialog(
     text: String,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("选择文本") },
-        text = {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { },
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = MaterialTheme.typography.bodyMedium
+    MiuixAlertDialog(
+        show = true,
+        title = "选择文本",
+        confirmText = "确定",
+        dismissText = null,
+        onConfirm = onDismiss,
+        onDismissRequest = onDismiss
+    ) {
+        // 只读文本用可选择的 Text 展示，比禁用输入框更直观
+        SelectionContainer {
+            Text(
+                text = text,
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onBackground
             )
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("确定")
-            }
         }
-    )
+    }
 }
 
 private fun formatAudioDuration(totalSeconds: Int): String {

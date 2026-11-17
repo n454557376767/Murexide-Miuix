@@ -16,7 +16,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,8 +53,13 @@ import com.juhao.murexide.data.MessageItem
 import com.juhao.murexide.datastore.SettingsStorage
 import com.juhao.murexide.datastore.UserAccount
 import com.juhao.murexide.ui.components.Avatar
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private val SendButtonSize = 36.dp
 private val SendFormatOptionWidth = 48.dp
@@ -222,7 +226,7 @@ fun MessageInput(
                         AppIcons.Mood
                     },
                     contentDescription = if (isEmojiPanelVisible) "切换到键盘" else "表情",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
         }
@@ -231,9 +235,9 @@ fun MessageInput(
             value = localFieldValue.value,
             mentions = mentions,
             enabled = true,
-            textColor = MaterialTheme.colorScheme.onSurface,
-            hintColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
-            textSizeSp = MaterialTheme.typography.bodyLarge.fontSize.value,
+            textColor = MiuixTheme.colorScheme.onBackground,
+            hintColor = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.65f),
+            textSizeSp = MiuixTheme.textStyles.body1.fontSize.value,
             focusRequester = focusRequester,
             onValueChange = { new, updatedMentions, insertedText, insertPosition ->
                 localFieldValue.value = new
@@ -290,7 +294,7 @@ fun MessageInput(
                                 AppIcons.Code
                             },
                             contentDescription = if (isInstructionPanelVisible) "切换到键盘" else "指令",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                         )
                     }
                 }
@@ -352,7 +356,7 @@ private fun FormatSendButton(
                 .size(SendButtonSize)
                 .clip(CircleShape)
                 .background(
-                    MaterialTheme.colorScheme.primaryContainer
+                    MiuixTheme.colorScheme.primaryContainer
                 )
                 .semantics {
                     role = Role.Button
@@ -439,14 +443,12 @@ private fun FormatSendButton(
             contentAlignment = Alignment.Center
         ) {
             if (isSending) {
-                ContainedLoadingIndicator(
-                    modifier = Modifier.size(20.dp)
-                )
+                MiuixLoadingIndicator(size = 20.dp)
             } else {
                 AutoMirroredIcon(
                     AppIcons.Send,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    tint = MiuixTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
@@ -464,15 +466,12 @@ private fun FormatSendButton(
                     dismissOnClickOutside = false
                 )
             ) {
-                Surface(
+                // Miuix Card：自带 surfaceContainerHigh 之外的容器语义与圆角，去掉 M3 的 tonal/shadow elevation
+                Card(
                     modifier = Modifier
                         .width(SendFormatOptionWidth * SendFormatOptions.size)
                         .heightIn(min = SendFormatPickerHeight, max = SendFormatPickerHeight)
-                        .clearAndSetSemantics { },
-                    shape = RoundedCornerShape(14.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    tonalElevation = 3.dp,
-                    shadowElevation = 8.dp
+                        .clearAndSetSemantics { }
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         SendFormatOptions.forEach { option ->
@@ -486,7 +485,7 @@ private fun FormatSendButton(
                                     .clip(RoundedCornerShape(10.dp))
                                     .background(
                                         if (selected) {
-                                            MaterialTheme.colorScheme.primaryContainer
+                                            MiuixTheme.colorScheme.primaryContainer
                                         } else {
                                             Color.Transparent
                                         }
@@ -494,9 +493,9 @@ private fun FormatSendButton(
                                 contentAlignment = Alignment.Center
                             ) {
                                 val iconTint = if (allowed) {
-                                    MaterialTheme.colorScheme.onSurface
+                                    MiuixTheme.colorScheme.onSurfaceContainer
                                 } else {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                                    MiuixTheme.colorScheme.disabledOnSurface
                                 }
                                 when (option.type) {
                                     "text" -> Icon(
@@ -558,7 +557,7 @@ private fun MoreActionsButton(
                 Icon(
                     imageVector = if (expanded) AppIcons.Close else AppIcons.AttachFile,
                     contentDescription = if (expanded) "关闭菜单" else "媒体",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
         }

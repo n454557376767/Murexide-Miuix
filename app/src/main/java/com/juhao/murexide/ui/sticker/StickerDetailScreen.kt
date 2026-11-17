@@ -39,6 +39,8 @@ import com.juhao.murexide.data.StickerPack
 import com.juhao.murexide.data.resolveStickerUrl
 import com.juhao.murexide.ui.icons.AppIcons
 import com.juhao.murexide.ui.components.*
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.basic.TextButton
 
 private const val GRID_COLUMNS = 4
 
@@ -185,7 +187,7 @@ fun StickerDetailScreen(
                             text = {
                                 Text(
                                     "删除表情包",
-                                    color = MaterialTheme.colorScheme.error
+                                    color = MiuixTheme.colorScheme.error
                                 )
                             },
                             leadingIcon = {
@@ -193,7 +195,7 @@ fun StickerDetailScreen(
                                     imageVector = AppIcons.Delete,
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
-                                    tint = MaterialTheme.colorScheme.error
+                                    tint = MiuixTheme.colorScheme.error
                                 )
                             },
                             onClick = {
@@ -211,7 +213,7 @@ fun StickerDetailScreen(
             when {
                 state.isLoading && state.pack == null -> {
                     Box(Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        MiuixLoadingIndicator()
                     }
                 }
 
@@ -347,7 +349,7 @@ fun StickerDetailScreen(
                     enabled = stickerNameInput.isNotBlank() && !state.isSubmitting
                 ) {
                     if (state.isSubmitting) {
-                        CircularProgressIndicator(
+                        MiuixLoadingIndicator(
                             modifier = Modifier.size(16.dp),
                             strokeWidth = 2.dp
                         )
@@ -405,7 +407,7 @@ fun StickerDetailScreen(
                     viewModel.deletePack { onBack() }
                     showDeletePackDialog = false
                 }) {
-                    Text("删除", color = MaterialTheme.colorScheme.error)
+                    Text("删除", color = MiuixTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -449,7 +451,7 @@ fun StickerDetailScreen(
                     viewModel.removeSticker(sticker.id)
                     stickerToDelete = null
                 }) {
-                    Text("删除", color = MaterialTheme.colorScheme.error)
+                    Text("删除", color = MiuixTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -461,8 +463,8 @@ fun StickerDetailScreen(
 
 @Composable
 private fun UploadProgressBar(progress: Float) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    MiuixSurface(
+        color = MiuixTheme.colorScheme.surfaceContainerHigh,
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -478,17 +480,17 @@ private fun UploadProgressBar(progress: Float) {
             ) {
                 Text(
                     text = "上传中…",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "${(progress * 100).toInt()}%",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.primary
                 )
             }
             Spacer(Modifier.height(6.dp))
-            LinearProgressIndicator(
+            MiuixLinearProgress(
                 progress = { progress },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -520,7 +522,7 @@ private fun StickerPreviewHeader(
         modifier = Modifier
             .fillMaxWidth()
             .height(height)
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .background(MiuixTheme.colorScheme.surfaceContainer)
             .combinedClickable(
                 onClick = {
                     showMediaViewer(
@@ -575,7 +577,7 @@ private fun StickerPackHeader(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = creatorName,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MiuixTheme.textStyles.title4,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -583,8 +585,8 @@ private fun StickerPackHeader(
                 if (creatorName.isNotBlank()) {
                     Text(
                         text = "创建者",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.8f)
                     )
                 }
             }
@@ -594,18 +596,18 @@ private fun StickerPackHeader(
                     enabled = !isSubmitting,
                     colors = if (isCollected) {
                         ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            containerColor = MiuixTheme.colorScheme.surfaceVariant,
+                            contentColor = MiuixTheme.colorScheme.onSurfaceVariantSummary
                         )
                     } else {
                         ButtonDefaults.buttonColors()
                     }
                 ) {
                     if (isSubmitting) {
-                        CircularProgressIndicator(
+                        MiuixLoadingIndicator(
                             modifier = Modifier.size(16.dp),
                             strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MiuixTheme.colorScheme.onPrimary
                         )
                     } else {
                         Text(if (isCollected) "已收藏" else "收藏")
@@ -651,13 +653,13 @@ private fun StatItem(
     ) {
         Text(
             text = value,
-            style = MaterialTheme.typography.titleMedium,
+            style = MiuixTheme.textStyles.title4,
             fontWeight = FontWeight.Bold
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary
         )
     }
 }
@@ -715,7 +717,7 @@ private fun StickerDetailItem(
             )
             Text(
                 text = sticker.name,
-                style = MaterialTheme.typography.labelSmall,
+                style = MiuixTheme.textStyles.footnote2,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 4.dp)
@@ -757,13 +759,13 @@ private fun StickerDetailItem(
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("删除", color = MaterialTheme.colorScheme.error) },
+                    text = { Text("删除", color = MiuixTheme.colorScheme.error) },
                     leadingIcon = {
                         Icon(
                             imageVector = AppIcons.Delete,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.error
+                            tint = MiuixTheme.colorScheme.error
                         )
                     },
                     onClick = {

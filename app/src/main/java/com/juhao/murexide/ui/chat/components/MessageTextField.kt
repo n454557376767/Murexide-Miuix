@@ -7,7 +7,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +39,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.sp
 import com.juhao.murexide.data.MentionToken
 import com.juhao.murexide.utils.MentionUtils
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun MessageTextField(
@@ -61,8 +62,8 @@ internal fun MessageTextField(
     onSendKey: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val cursorColor = MaterialTheme.colorScheme.primary
-    val selectionColor = MaterialTheme.colorScheme.primary
+    val cursorColor = MiuixTheme.colorScheme.primary
+    val selectionColor = MiuixTheme.colorScheme.primary
 
     var displayValue by remember { mutableStateOf(value) }
     var committedValue by remember { mutableStateOf(value) }
@@ -177,7 +178,7 @@ internal fun MessageTextField(
                     contentAlignment = Alignment.CenterStart
                 ) {
                     if (displayValue.text.isEmpty()) {
-                        androidx.compose.material3.Text(
+                        Text(
                             text = "输入消息...",
                             color = hintColor,
                             fontSize = textSizeSp.sp

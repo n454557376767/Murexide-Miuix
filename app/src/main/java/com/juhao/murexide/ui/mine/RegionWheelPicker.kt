@@ -26,6 +26,8 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
 
 @Composable
 internal fun RegionWheelPicker(
@@ -45,7 +47,7 @@ internal fun RegionWheelPicker(
                 .height(260.dp),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator()
+            MiuixLoadingIndicator()
         }
         return
     }
@@ -188,7 +190,7 @@ internal fun RegionPickerBottomSheet(
             }
             Text(
                 text = "选择所在地",
-                style = MaterialTheme.typography.titleMedium,
+                style = MiuixTheme.textStyles.title4,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(1f)
@@ -286,7 +288,7 @@ private fun WheelColumn(
                 .height(itemHeight - 6.dp)
                 .padding(horizontal = 2.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                .background(MiuixTheme.colorScheme.surfaceContainerHighest)
         )
 
         LazyColumn(
@@ -326,16 +328,16 @@ private fun WheelColumn(
                     Text(
                         text = item.name,
                         style = if (isCentered) {
-                            MaterialTheme.typography.titleSmall.copy(
+                            MiuixTheme.textStyles.footnote1.copy(
                                 fontSize = item.name.wheelFontSize(),
                                 fontWeight = FontWeight.SemiBold
                             )
                         } else {
-                            MaterialTheme.typography.bodyMedium.copy(
+                            MiuixTheme.textStyles.body2.copy(
                                 fontSize = item.name.wheelFontSize()
                             )
                         },
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = MiuixTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

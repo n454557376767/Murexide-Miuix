@@ -93,6 +93,8 @@ import top.yukonga.miuix.kmp.basic.NavigationBar
 import top.yukonga.miuix.kmp.basic.NavigationBarDefaults
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import com.juhao.murexide.ui.components.MiuixSurface
+import com.juhao.murexide.ui.components.MiuixBadgedBox
 
 private data class NavItem(
     val route: String,
@@ -126,18 +128,18 @@ private fun HomeNavigationIcon(
             selected = selected,
             contentDescription = item.title,
             tint = if (selected) {
-                MaterialTheme.colorScheme.primary
+                MiuixTheme.colorScheme.primary
             } else if (liquidGlassEnabled) {
                 inheritedGlassContentColor
             } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
+                MiuixTheme.colorScheme.onSurfaceVariantSummary
             }
         )
     }
 
     when (item.route) {
         "conversations" -> {
-            BadgedBox(badge = { UnreadCountBadge(unreadCount) }) {
+            MiuixBadgedBox(badge = { UnreadCountBadge(unreadCount) }) {
                 icon()
             }
         }
@@ -187,14 +189,14 @@ private fun HomeNavigationLabel(
         Text(
             text = item.title,
             style = if (compact) {
-                MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.sp)
+                MiuixTheme.textStyles.footnote2.copy(letterSpacing = 0.sp)
             } else {
                 LocalTextStyle.current
             },
             color = if (liquidGlassEnabled) {
                 inheritedGlassContentColor
             } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
+                MiuixTheme.colorScheme.onSurfaceVariantSummary
             }
         )
     }
@@ -342,7 +344,7 @@ class MainActivity : ComponentActivity() {
 
             setContent {
                 MurexideTheme {
-                    Surface(modifier = Modifier.fillMaxSize()) {
+                    MiuixSurface(modifier = Modifier.fillMaxSize()) {
                         MainScreen(account)
                     }
                 }
@@ -410,8 +412,8 @@ fun MainScreen(account: UserAccount) {
         },
         navigationSuiteColors = if (themeColor == "WHITE") {
             NavigationSuiteDefaults.colors(
-                navigationBarContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                navigationRailContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                navigationBarContainerColor = MiuixTheme.colorScheme.surfaceContainer,
+                navigationRailContainerColor = MiuixTheme.colorScheme.surfaceContainer
             )
         } else {
             NavigationSuiteDefaults.colors()
@@ -448,7 +450,7 @@ fun MainScreen(account: UserAccount) {
                             }
 
                             "conversations" -> {
-                                BadgedBox(badge = { UnreadCountBadge(unreadCount) }) {
+                                MiuixBadgedBox(badge = { UnreadCountBadge(unreadCount) }) {
                                     AnimatedNavigationSymbol(
                                         outlineIcon = item.outlineIcon,
                                         filledIcon = item.filledIcon,

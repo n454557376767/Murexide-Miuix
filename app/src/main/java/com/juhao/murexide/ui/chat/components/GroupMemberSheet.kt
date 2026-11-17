@@ -1,11 +1,12 @@
 package com.juhao.murexide.ui.chat.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,9 +15,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.juhao.murexide.data.GroupMember
 import com.juhao.murexide.ui.components.Avatar
+import com.juhao.murexide.ui.components.MiuixBottomSheet
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
+import com.juhao.murexide.ui.components.MiuixSearchField
 import com.juhao.murexide.ui.icons.AppIcons
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupMemberSheet(
     title: String,
@@ -47,13 +53,9 @@ fun GroupMemberSheet(
         }
     }
 
-    val sheetState = rememberModalBottomSheetState(
+    MiuixBottomSheet(
+        onDismissRequest = onDismiss,
         skipPartiallyExpanded = true
-    )
-
-    ModalBottomSheet(
-        sheetState = sheetState,
-        onDismissRequest = onDismiss
     ) {
         Column(
             modifier = Modifier
@@ -62,36 +64,20 @@ fun GroupMemberSheet(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium,
+                style = MiuixTheme.textStyles.title4,
                 fontWeight = FontWeight.Bold,
+                color = MiuixTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
             )
 
             if (onSearchChange != null) {
-                OutlinedTextField(
+                MiuixSearchField(
                     value = searchQuery,
                     onValueChange = onSearchChange,
+                    placeholder = "搜索成员",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 4.dp),
-                    singleLine = true,
-                    placeholder = { Text("搜索成员") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = AppIcons.Search,
-                            contentDescription = null
-                        )
-                    },
-                    trailingIcon = {
-                        if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { onSearchChange("") }) {
-                                Icon(
-                                    imageVector = AppIcons.Close,
-                                    contentDescription = "清除"
-                                )
-                            }
-                        }
-                    }
+                        .padding(horizontal = 20.dp, vertical = 4.dp)
                 )
             }
 
@@ -100,7 +86,7 @@ fun GroupMemberSheet(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    MiuixLoadingIndicator()
                 }
             } else if (members.isEmpty()) {
                 Box(
@@ -109,8 +95,8 @@ fun GroupMemberSheet(
                 ) {
                     Text(
                         text = if (searchQuery.isNotEmpty()) "没有匹配的成员" else "暂无成员",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
             } else {
@@ -131,14 +117,15 @@ fun GroupMemberSheet(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = member.name,
-                                    style = MaterialTheme.typography.bodyLarge,
+                                    style = MiuixTheme.textStyles.body1,
+                                    color = MiuixTheme.colorScheme.onBackground,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     text = "ID: ${member.userId}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    style = MiuixTheme.textStyles.footnote2,
+                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                             }
                             when (member.permissionLevel) {
@@ -156,7 +143,7 @@ fun GroupMemberSheet(
                                     .padding(12.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                                MiuixLoadingIndicator(size = 24.dp, strokeWidth = 2.dp)
                             }
                         }
                     }
@@ -168,15 +155,19 @@ fun GroupMemberSheet(
 
 @Composable
 private fun RoleBadge(text: String) {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.primaryContainer
+    // 角色标签：容器/前景走 Miuix 的 secondaryContainer 配对
+    Box(
+        modifier = Modifier
+            .background(
+                MiuixTheme.colorScheme.secondaryContainer,
+                RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 8.dp, vertical = 2.dp)
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.onSecondaryContainer
         )
     }
 }

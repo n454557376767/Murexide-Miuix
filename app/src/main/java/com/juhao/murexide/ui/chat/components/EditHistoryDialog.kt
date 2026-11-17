@@ -6,30 +6,28 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ContainedLoadingIndicator
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.juhao.murexide.repository.EditHistoryItem
 import com.juhao.murexide.repository.MessageRepository
+import com.juhao.murexide.ui.components.MiuixAlertDialog
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun EditHistoryDialog(
     token: String,
@@ -92,42 +90,37 @@ fun EditHistoryDialog(
         }
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text("编辑历史")
-        },
-        text = {
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(vertical = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                state = listState
-            ) {
-                items(historyList) { item ->
-                    Item(item)
-                }
+    MiuixAlertDialog(
+        show = true,
+        title = "编辑历史",
+        confirmText = "确定",
+        onConfirm = onDismiss,
+        onDismissRequest = onDismiss
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 360.dp),
+            contentPadding = PaddingValues(vertical = 6.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            state = listState
+        ) {
+            items(historyList) { item ->
+                Item(item)
+            }
 
-                if (isLoading) {
-                    item {
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            ContainedLoadingIndicator()
-                        }
+            if (isLoading) {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        MiuixLoadingIndicator(size = 24.dp)
                     }
                 }
             }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onDismiss
-            ) {
-                Text("确定")
-            }
         }
-    )
+    }
 }
 
 @Composable
@@ -157,17 +150,22 @@ private fun Item(
         }
     }
 
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         SelectionContainer {
             Column(
-                modifier = Modifier.padding(6.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                modifier = Modifier.padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(data.getOldText())
-                Text("编辑时间：$timestampDisplay")
+                Text(
+                    text = data.getOldText(),
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer
+                )
+                Text(
+                    text = "编辑时间：$timestampDisplay",
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant
+                )
             }
         }
     }

@@ -87,6 +87,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.basic.TextButton
 
 private val botSettingsJson = Json { ignoreUnknownKeys = true }
 
@@ -193,7 +195,7 @@ fun ConversationDetailScreen(
                 Column {
                     Text(
                         text = detail.name,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MiuixTheme.textStyles.title4,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -201,8 +203,8 @@ fun ConversationDetailScreen(
                     )
                     Text(
                         text = subtitleText,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.alpha(titleAlpha)
@@ -297,12 +299,12 @@ fun ConversationDetailScreen(
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("举报", color = MaterialTheme.colorScheme.error) },
+                        text = { Text("举报", color = MiuixTheme.colorScheme.error) },
                         leadingIcon = {
                             Icon(
                                 AppIcons.Report,
                                 null,
-                                tint = MaterialTheme.colorScheme.error
+                                tint = MiuixTheme.colorScheme.error
                             )
                         },
                         onClick = {
@@ -321,7 +323,7 @@ fun ConversationDetailScreen(
                     detail == null && state.isLoading -> Box(
                         Modifier.fillMaxSize().padding(padding),
                         Alignment.Center
-                    ) { CircularProgressIndicator() }
+                    ) { MiuixLoadingIndicator() }
 
                     detail == null || state.error != null -> EmptyPlaceholder(
                         modifier = Modifier.padding(padding),
@@ -402,7 +404,7 @@ fun ConversationDetailScreen(
     if (showLeaveConfirm) {
         AlertDialog(
             onDismissRequest = { if (!state.isLeaving) showLeaveConfirm = false },
-            icon = { Icon(AppIcons.Warning, null, tint = MaterialTheme.colorScheme.error) },
+            icon = { Icon(AppIcons.Warning, null, tint = MiuixTheme.colorScheme.error) },
             title = { Text("删除会话") },
             text = { Text("确定要永久删除会话吗？将会删除/退出此会话。") },
             confirmButton = {
@@ -410,11 +412,11 @@ fun ConversationDetailScreen(
                     enabled = !state.isLeaving,
                     onClick = viewModel::deleteChat
                 ) {
-                    if (state.isLeaving) CircularProgressIndicator(
+                    if (state.isLeaving) MiuixLoadingIndicator(
                         Modifier.size(18.dp),
                         strokeWidth = 2.dp
                     )
-                    else Text("确定", color = MaterialTheme.colorScheme.error)
+                    else Text("确定", color = MiuixTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -431,7 +433,7 @@ fun ConversationDetailScreen(
             title = { Text("正在设置背景") },
             text = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+                    MiuixLoadingIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
                     Spacer(Modifier.width(12.dp))
                     Text("上传并保存中…")
                 }
@@ -566,7 +568,7 @@ private fun ConversationDetailContent(
     val isUser = chatType == 1
     val isCurrentUser = isUser && detail.chatId == currentUserId
     val context = LocalContext.current
-    val cardColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    val cardColor = MiuixTheme.colorScheme.surfaceContainerHigh
     val mediaRows = media.chunked(3)
     var introductionExpanded by remember(detail.chatId) { mutableStateOf(false) }
     var createdBoardsExpanded by remember(detail.chatId) { mutableStateOf(false) }
@@ -800,7 +802,7 @@ private fun LazyListScope.memberTabItems(
                         contentAlignment = Alignment.Center
                     ) {
                         if (isLoadingMoreMembers) {
-                            CircularProgressIndicator(
+                            MiuixLoadingIndicator(
                                 modifier = Modifier.size(24.dp),
                                 strokeWidth = 2.dp
                             )
@@ -955,15 +957,15 @@ private fun DetailHeader(
         Spacer(Modifier.height(10.dp))
         Text(
             detail.name,
-            style = MaterialTheme.typography.headlineSmall,
+            style = MiuixTheme.textStyles.title2,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             modifier = Modifier.alpha(headerAlpha)
         )
         Text(
             text = subtitleText,
-            color = resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurfaceVariant),
-            style = MaterialTheme.typography.bodyMedium,
+            color = resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurfaceVariantSummary),
+            style = MiuixTheme.textStyles.body2,
             modifier = Modifier.alpha(headerAlpha)
         )
 
@@ -981,16 +983,16 @@ private fun DetailHeader(
                     else -> null
                 }
                 if (genderLabel != null) {
-                    val surface = MaterialTheme.colorScheme.onSurface
+                    val surface = MiuixTheme.colorScheme.onSurface
                     val genderContainer = when (detail.gender) {
                         1 -> Color(0xFF2196F3).copy(alpha = 0.2f)
                         2 -> Color(0xFFFF6B9A).copy(alpha = 0.2f)
-                        else -> MaterialTheme.colorScheme.secondaryContainer
+                        else -> MiuixTheme.colorScheme.secondaryContainer
                     }
                     val genderContent = when (detail.gender) {
                         1 -> lerp(surface, Color(0xFF2196F3), 0.5f)
                         2 -> lerp(surface, Color(0xFFFF6B9A), 0.5f)
-                        else -> MaterialTheme.colorScheme.onSecondaryContainer
+                        else -> MiuixTheme.colorScheme.onSecondaryContainer
                     }
                     TagCard(
                         text = genderLabel,
@@ -1065,13 +1067,13 @@ private fun DetailHeader(
         }
 
         if (detail.introduction.isNotBlank()) {
-            Surface(
+            MiuixSurface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 8.dp)
                     .clickable(onClick = onIntroductionClick),
                 shape = RoundedCornerShape(18.dp),
-                color = detailGlassColor(MaterialTheme.colorScheme.surfaceContainerHigh)
+                color = detailGlassColor(MiuixTheme.colorScheme.surfaceContainerHigh)
             ) {
                 IntroductionContent(
                     introduction = detail.introduction,
@@ -1095,11 +1097,11 @@ private fun DetailInfoCard(
     hasLoadedCreatedBoards: Boolean,
     onOpenBoard: (BaItem) -> Unit
 ) {
-    DetailCardSegment(cardColor = MaterialTheme.colorScheme.surfaceContainerHigh, isTop = true) {
+    DetailCardSegment(cardColor = MiuixTheme.colorScheme.surfaceContainerHigh, isTop = true) {
         Column(Modifier.padding(vertical = 4.dp)) {
             Text(
                 text = "详情信息",
-                style = MaterialTheme.typography.titleMedium,
+                style = MiuixTheme.textStyles.title4,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
             )
@@ -1139,12 +1141,12 @@ private fun DetailInfoCard(
                                 .padding(vertical = 12.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                            MiuixLoadingIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                         }
                         createdBoards.isEmpty() -> Text(
                             text = if (hasLoadedCreatedBoards) "暂无创建的板块" else "加载失败，点击重试",
-                            color = resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurfaceVariant),
-                            style = MaterialTheme.typography.bodyMedium,
+                            color = resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurfaceVariantSummary),
+                            style = MiuixTheme.textStyles.body2,
                             modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 10.dp)
                         )
                         else -> Column {
@@ -1158,7 +1160,7 @@ private fun DetailInfoCard(
             HorizontalDivider()
             Text(
                 text = "媒体",
-                style = MaterialTheme.typography.titleMedium,
+                style = MiuixTheme.textStyles.title4,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
             )
@@ -1184,13 +1186,13 @@ private fun LegacyContent(
         Spacer(Modifier.height(14.dp))
         Text(
             detail.name,
-            style = MaterialTheme.typography.headlineSmall,
+            style = MiuixTheme.textStyles.title2,
             fontWeight = FontWeight.Bold
         )
         if (detail.introduction.isNotBlank()) Text(
             detail.introduction,
             textAlign = TextAlign.Center,
-            color = resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurfaceVariant),
+            color = resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurfaceVariantSummary),
             modifier = Modifier.padding(top = 8.dp)
         )
         Spacer(Modifier.height(20.dp))
@@ -1263,8 +1265,8 @@ private fun ReportDialog(
             ) {
                 Text(
                     text = "举报理由",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
                 Spacer(Modifier.height(6.dp))
                 reasons.forEach { reason ->
@@ -1284,7 +1286,7 @@ private fun ReportDialog(
                         Spacer(Modifier.width(4.dp))
                         Text(
                             text = reason,
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MiuixTheme.textStyles.body2
                         )
                     }
                 }
@@ -1312,7 +1314,7 @@ private fun ReportDialog(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         if (state.isUploadingImage) {
-                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                            MiuixLoadingIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                             Spacer(Modifier.width(8.dp))
                             Text("上传中…")
                         } else {
@@ -1353,8 +1355,8 @@ private fun ReportDialog(
                     Spacer(Modifier.height(8.dp))
                     Text(
                         text = error,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
+                        color = MiuixTheme.colorScheme.error,
+                        style = MiuixTheme.textStyles.footnote2
                     )
                 }
             }
@@ -1368,7 +1370,7 @@ private fun ReportDialog(
                         state.content.isNotBlank()
             ) {
                 if (state.isSubmitting) {
-                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                    MiuixLoadingIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                 } else {
                     Text("提交")
                 }
@@ -1407,38 +1409,38 @@ private fun ShareLinkSheet(
         ) {
             Text(
                 text = "分享会话",
-                style = MaterialTheme.typography.titleLarge,
+                style = MiuixTheme.textStyles.title4,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(6.dp))
             Text(
                 text = shareState.chatName,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
             Spacer(Modifier.height(20.dp))
             when {
                 shareState.isLoading -> {
-                    CircularProgressIndicator(Modifier.size(40.dp), strokeWidth = 3.dp)
+                    MiuixLoadingIndicator(Modifier.size(40.dp), strokeWidth = 3.dp)
                     Spacer(Modifier.height(12.dp))
                     Text(
                         "正在创建分享链接…",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
                 shareState.error != null -> {
                     Icon(
                         AppIcons.Warning,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
+                        tint = MiuixTheme.colorScheme.error,
                         modifier = Modifier.size(40.dp)
                     )
                     Spacer(Modifier.height(12.dp))
                     Text(
                         text = shareState.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.error,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(20.dp))
@@ -1457,15 +1459,15 @@ private fun ShareLinkSheet(
                     }
                 }
                 else -> {
-                    Surface(
+                    MiuixSurface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        color = detailGlassColor(MaterialTheme.colorScheme.surfaceContainerHigh)
+                        color = detailGlassColor(MiuixTheme.colorScheme.surfaceContainerHigh)
                     ) {
                         SelectionContainer {
                             Text(
                                 text = shareState.url,
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MiuixTheme.textStyles.body2,
                                 modifier = Modifier.padding(16.dp)
                             )
                         }
@@ -1518,10 +1520,10 @@ private fun ShareLinkSheet(
 private fun TagCard(
     text: String,
     icon: ImageVector? = null,
-    containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
-    contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer
+    containerColor: Color = MiuixTheme.colorScheme.secondaryContainer,
+    contentColor: Color = MiuixTheme.colorScheme.onSecondaryContainer
 ) {
-    Surface(
+    MiuixSurface(
         shape = RoundedCornerShape(16.dp),
         color = containerColor
     ) {
@@ -1540,7 +1542,7 @@ private fun TagCard(
             }
             Text(
                 text = text,
-                style = MaterialTheme.typography.labelMedium,
+                style = MiuixTheme.textStyles.footnote1,
                 color = contentColor,
                 maxLines = 1
             )
@@ -1565,19 +1567,19 @@ private fun UserInfoRow(
             .padding(horizontal = 14.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
+        Text(label, style = MiuixTheme.textStyles.body2)
         Spacer(Modifier.weight(1f))
         Text(
             value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurfaceVariant)
+            style = MiuixTheme.textStyles.body2,
+            color = resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurfaceVariantSummary)
         )
         trailingIcon?.let {
             Spacer(Modifier.width(4.dp))
             Icon(
                 it,
                 contentDescription = null,
-                tint = resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurfaceVariant)
+                tint = resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurfaceVariantSummary)
             )
         }
     }
@@ -1596,7 +1598,7 @@ private fun CreatedBoardRow(board: BaItem, onClick: () -> Unit) {
         Spacer(Modifier.width(10.dp))
         Text(
             text = board.name.ifBlank { "未命名板块" },
-            style = MaterialTheme.typography.bodyLarge,
+            style = MiuixTheme.textStyles.body1,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -1615,12 +1617,12 @@ private fun GroupIdentityInfo(detail: ConversationDetail) {
             Toast.makeText(context, "${label}已复制", Toast.LENGTH_SHORT).show()
         }
     }
-    Surface(
+    MiuixSurface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp),
         shape = RoundedCornerShape(18.dp),
-        color = detailGlassColor(MaterialTheme.colorScheme.surfaceContainerHigh)
+        color = detailGlassColor(MiuixTheme.colorScheme.surfaceContainerHigh)
     ) {
         Row(
             modifier = Modifier
@@ -1637,7 +1639,7 @@ private fun GroupIdentityInfo(detail: ConversationDetail) {
             detail.groupCode?.takeIf { it.isNotBlank() }?.let { groupCode ->
                 VerticalDivider(
                     modifier = Modifier.height(44.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant
+                    color = MiuixTheme.colorScheme.dividerLine
                 )
                 GroupIdentityColumn(
                     label = "群口令",
@@ -1664,8 +1666,8 @@ private fun GroupIdentityColumn(
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurfaceVariant)
+            style = MiuixTheme.textStyles.footnote1,
+            color = resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurfaceVariantSummary)
         )
         GroupIdentityText(
             value = value,
@@ -1683,8 +1685,8 @@ private fun GroupIdentityText(
 ) {
     Text(
         text = value,
-        style = MaterialTheme.typography.bodyMedium,
-        color = resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurfaceVariant),
+        style = MiuixTheme.textStyles.body2,
+        color = resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurfaceVariantSummary),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         textAlign = TextAlign.Center,
@@ -1708,7 +1710,7 @@ private fun IntroductionContent(
         SelectionContainer {
             Text(
                 text = introduction,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MiuixTheme.textStyles.body2,
                 maxLines = if (expanded) Int.MAX_VALUE else 4,
                 overflow = TextOverflow.Clip,
                 onTextLayout = { hasOverflow = it.hasVisualOverflow }
@@ -1724,8 +1726,8 @@ private fun IntroductionContent(
             ) {
                 Text(
                     "更多",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.primary,
                     modifier = Modifier.padding(end = 2.dp)
                 )
             }
@@ -1734,8 +1736,8 @@ private fun IntroductionContent(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 "简介",
-                style = MaterialTheme.typography.labelMedium,
-                color = resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurfaceVariant)
+                style = MiuixTheme.textStyles.footnote1,
+                color = resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurfaceVariantSummary)
             )
             Spacer(Modifier.weight(1f))
             IconButton(
@@ -1766,14 +1768,14 @@ private fun TelegramAction(
     enabled: Boolean = true
 ) {
     val actionColor = when {
-        isDanger -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.onSurface
+        isDanger -> MiuixTheme.colorScheme.error
+        else -> MiuixTheme.colorScheme.onSurface
     }
-    Surface(
+    MiuixSurface(
         onClick = onClick,
         enabled = enabled && !loading,
         modifier = modifier,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        color = MiuixTheme.colorScheme.surfaceContainerHigh,
         shape = RoundedCornerShape(20.dp)
     ) {
         Column(
@@ -1781,7 +1783,7 @@ private fun TelegramAction(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            if (loading) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+            if (loading) MiuixLoadingIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
             else {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(icon, null, modifier = Modifier.size(24.dp), tint = actionColor)
@@ -1790,9 +1792,9 @@ private fun TelegramAction(
             Spacer(Modifier.height(4.dp))
             Text(
                 label,
-                style = MaterialTheme.typography.bodySmall,
+                style = MiuixTheme.textStyles.footnote2,
                 color = if (enabled && !isDanger) {
-                    resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurface)
+                    resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurface)
                 } else {
                     actionColor
                 }
@@ -1838,13 +1840,13 @@ private fun MemberRow(
                             leadingIcon = { Icon(AppIcons.MicOff, null) }
                         )
                         DropdownMenuItem(
-                            text = { Text("踢出群聊", color = MaterialTheme.colorScheme.error) },
+                            text = { Text("踢出群聊", color = MiuixTheme.colorScheme.error) },
                             onClick = { expanded = false; onKick() },
                             leadingIcon = {
                                 Icon(
                                     AppIcons.PersonRemove,
                                     null,
-                                    tint = MaterialTheme.colorScheme.error
+                                    tint = MiuixTheme.colorScheme.error
                                 )
                             }
                         )
@@ -1862,7 +1864,7 @@ private fun MemberRow(
                 Text(
                     member.name,
                     modifier = Modifier.weight(1f, fill = false),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MiuixTheme.textStyles.title4,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -1878,8 +1880,8 @@ private fun MemberRow(
                     member.isGag -> "已禁言"
                     else -> "成员"
                 },
-                style = MaterialTheme.typography.bodySmall,
-                color = resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurfaceVariant)
+                style = MiuixTheme.textStyles.footnote2,
+                color = resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurfaceVariantSummary)
             )
         }
     }
@@ -1919,13 +1921,13 @@ private fun BotRow(
                             leadingIcon = { Icon(AppIcons.Tune, null) }
                         )
                         DropdownMenuItem(
-                            text = { Text("移除机器人", color = MaterialTheme.colorScheme.error) },
+                            text = { Text("移除机器人", color = MiuixTheme.colorScheme.error) },
                             onClick = { expanded = false; onRemove() },
                             leadingIcon = {
                                 Icon(
                                     AppIcons.Delete,
                                     null,
-                                    tint = MaterialTheme.colorScheme.error
+                                    tint = MiuixTheme.colorScheme.error
                                 )
                             }
                         )
@@ -1938,15 +1940,15 @@ private fun BotRow(
         Column(Modifier.fillMaxWidth()) {
             Text(
                 bot.name,
-                style = MaterialTheme.typography.titleMedium,
+                style = MiuixTheme.textStyles.title4,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             if (bot.introduction.isNotBlank()) {
                 Text(
                     bot.introduction,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurfaceVariant),
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurfaceVariantSummary),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -1983,7 +1985,7 @@ private fun MemberManagementDialogs(
             text = { Text("确定要踢出 ${kickTarget?.name ?: "该成员"} 吗？") },
             confirmButton = {
                 TextButton(onClick = onConfirmKick) {
-                    Text("踢出", color = MaterialTheme.colorScheme.error)
+                    Text("踢出", color = MiuixTheme.colorScheme.error)
                 }
             },
             dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } }
@@ -2006,8 +2008,8 @@ private fun MemberManagementDialogs(
                             steps = gagOptions.lastIndex - 1
                         )
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("10分钟", style = MaterialTheme.typography.labelSmall)
-                            Text("永久", style = MaterialTheme.typography.labelSmall)
+                            Text("10分钟", style = MiuixTheme.textStyles.footnote2)
+                            Text("永久", style = MiuixTheme.textStyles.footnote2)
                         }
                     }
                 }
@@ -2045,14 +2047,14 @@ private fun MemberManagementDialogs(
 
 @Composable
 private fun MemberRoleBadge(text: String) {
-    Surface(
+    MiuixSurface(
         shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.primaryContainer
+        color = MiuixTheme.colorScheme.primaryContainer
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.onPrimaryContainer,
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
         )
     }
@@ -2126,7 +2128,7 @@ private fun MediaRow(
                             Spacer(Modifier.width(2.dp))
                             Text(
                                 text = duration,
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MiuixTheme.textStyles.footnote2,
                                 color = Color.White
                             )
                         }
@@ -2157,7 +2159,7 @@ private fun DetailCardSegment(
         isBottom -> RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
         else -> RectangleShape
     }
-    Surface(
+    MiuixSurface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp),
@@ -2186,11 +2188,11 @@ private fun AutoLoadingRow(loading: Boolean) {
         contentAlignment = Alignment.Center
     ) {
         if (loading) {
-            CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+            MiuixLoadingIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
         } else {
             Text(
                 "继续下滑加载更多",
-                color = resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurfaceVariant)
+                color = resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurfaceVariantSummary)
             )
         }
     }
@@ -2198,7 +2200,7 @@ private fun AutoLoadingRow(loading: Boolean) {
 
 @Composable
 private fun LoadingContent() =
-    Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
+    Box(Modifier.fillMaxSize(), Alignment.Center) { MiuixLoadingIndicator() }
 
 @Composable
 private fun EmptyContent(text: String) = Box(Modifier.fillMaxSize(), Alignment.Center) {
@@ -2229,7 +2231,7 @@ private fun BotManagementDialogs(
             text = { Text("确定要将 ${removeBotTarget?.name ?: "该机器人"} 移出本群吗？") },
             confirmButton = {
                 TextButton(onClick = onConfirmRemove) {
-                    Text("移除", color = MaterialTheme.colorScheme.error)
+                    Text("移除", color = MiuixTheme.colorScheme.error)
                 }
             },
             dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } }
@@ -2246,7 +2248,7 @@ private fun BotManagementDialogs(
                             .fillMaxWidth()
                             .height(120.dp),
                         contentAlignment = Alignment.Center
-                    ) { CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 2.dp) }
+                    ) { MiuixLoadingIndicator(Modifier.size(28.dp), strokeWidth = 2.dp) }
                 } else {
                     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                         permission.items.forEach { item ->
@@ -2269,7 +2271,7 @@ private fun BotManagementDialogs(
                     onClick = onSavePermission
                 ) {
                     if (isSavingPermission) {
-                        CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                        MiuixLoadingIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                     } else {
                         Text("保存")
                     }
@@ -2300,13 +2302,13 @@ private fun BotPermissionSwitchRow(
         Column(Modifier.weight(1f)) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.bodyMedium
+                style = MiuixTheme.textStyles.body2
             )
             if (description.isNotBlank()) {
                 Text(
                     text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = resolvedLiquidGlassContentColor(MaterialTheme.colorScheme.onSurfaceVariant)
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = resolvedLiquidGlassContentColor(MiuixTheme.colorScheme.onSurfaceVariantSummary)
                 )
             }
         }
@@ -2363,7 +2365,7 @@ private fun BotSettingsDialog(
                         .height(140.dp),
                     Alignment.Center
                 ) {
-                    CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 2.dp)
+                    MiuixLoadingIndicator(Modifier.size(28.dp), strokeWidth = 2.dp)
                 }
                 items.isEmpty() -> Text("该机器人暂无需要设置的项")
                 else -> Column(
@@ -2393,7 +2395,7 @@ private fun BotSettingsDialog(
                 }
             ) {
                 if (isSaving) {
-                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                    MiuixLoadingIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                 } else {
                     Text("保存")
                 }
@@ -2416,9 +2418,9 @@ private fun BotSettingsFieldView(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = item.title,
-            style = MaterialTheme.typography.titleSmall,
+            style = MiuixTheme.textStyles.footnote1,
             fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MiuixTheme.colorScheme.onSurface
         )
         Spacer(Modifier.height(6.dp))
         when (item.type) {
@@ -2448,7 +2450,7 @@ private fun BotSettingsFieldView(
                                 enabled = enabled,
                                 onClick = { textValues[item.id] = option }
                             )
-                            Text(option, style = MaterialTheme.typography.bodyMedium)
+                            Text(option, style = MiuixTheme.textStyles.body2)
                         }
                     }
                 }
@@ -2478,7 +2480,7 @@ private fun BotSettingsFieldView(
                                         if (isChecked) current + option else current - option
                                 }
                             )
-                            Text(option, style = MaterialTheme.typography.bodyMedium)
+                            Text(option, style = MiuixTheme.textStyles.body2)
                         }
                     }
                 }
@@ -2501,8 +2503,8 @@ private fun BotSettingsFieldView(
 private fun NoOptionsHint() {
     Text(
         text = "无选项",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        style = MiuixTheme.textStyles.footnote2,
+        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
     )
 }
 

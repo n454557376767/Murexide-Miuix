@@ -9,14 +9,16 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,8 +43,15 @@ import com.juhao.murexide.data.ExpressionItem
 import com.juhao.murexide.data.StickerItem
 import com.juhao.murexide.data.StickerPack
 import com.juhao.murexide.data.resolveStickerUrl
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
+import com.juhao.murexide.ui.components.MiuixPopupMenu
+import com.juhao.murexide.ui.components.MiuixPopupMenuItem
 import com.juhao.murexide.ui.icons.AppIcons
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private val PanelMinHeight = 280.dp
 
@@ -160,7 +169,7 @@ fun EmojiPanel(
                     .width(40.dp)
                     .height(4.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+                    .background(MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.4f))
             )
         }
 
@@ -168,45 +177,40 @@ fun EmojiPanel(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            PrimaryScrollableTabRow(
-                selectedTabIndex = pagerState.currentPage,
-                edgePadding = 4.dp,
-                containerColor = Color.Transparent,
-                minTabWidth = 56.dp,
-                modifier = Modifier.weight(1f)
+            // 图标标签页（表情/收藏/表情包）用应用自有的 Miuix 圆形选中态，横向可滚动
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .horizontalScroll(rememberScrollState()),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Tab(
+                EmojiPanelTabItem(
                     selected = pagerState.currentPage == 0,
-                    onClick = { scope.launch { pagerState.animateScrollToPage(0) } },
-                    modifier = Modifier.requiredWidth(56.dp),
-                    icon = {
-                        Text(text = "😀", fontSize = 20.sp)
-                    }
-                )
+                    onClick = { scope.launch { pagerState.animateScrollToPage(0) } }
+                ) {
+                    Text(text = "😀", fontSize = 20.sp)
+                }
 
-                Tab(
+                EmojiPanelTabItem(
                     selected = pagerState.currentPage == 1,
-                    onClick = { scope.launch { pagerState.animateScrollToPage(1) } },
-                    modifier = Modifier.requiredWidth(56.dp),
-                    icon = {
-                        Icon(
-                            imageVector = AppIcons.Favorite,
-                            contentDescription = "收藏",
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                )
+                    onClick = { scope.launch { pagerState.animateScrollToPage(1) } }
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Favorite,
+                        contentDescription = "收藏",
+                        modifier = Modifier.size(22.dp),
+                        tint = MiuixTheme.colorScheme.onBackground
+                    )
+                }
 
                 stickerPacks.forEachIndexed { index, pack ->
                     val page = index + 2
-                    Tab(
+                    EmojiPanelTabItem(
                         selected = pagerState.currentPage == page,
-                        onClick = { scope.launch { pagerState.animateScrollToPage(page) } },
-                        modifier = Modifier.requiredWidth(56.dp),
-                        icon = {
-                            StickerPackTabIcon(pack = pack)
-                        }
-                    )
+                        onClick = { scope.launch { pagerState.animateScrollToPage(page) } }
+                    ) {
+                        StickerPackTabIcon(pack = pack)
+                    }
                 }
             }
 
@@ -214,7 +218,8 @@ fun EmojiPanel(
                 Icon(
                     imageVector = AppIcons.Settings,
                     contentDescription = "管理表情包",
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
+                    tint = MiuixTheme.colorScheme.onBackground
                 )
             }
         }
@@ -229,7 +234,7 @@ fun EmojiPanel(
             when {
                 isLoading && expressions.isEmpty() && stickerPacks.isEmpty() && page == 1 -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        MiuixLoadingIndicator(size = 24.dp)
                     }
                 }
 
@@ -276,7 +281,8 @@ private fun StickerPackTabIcon(pack: StickerPack) {
         Icon(
             imageVector = AppIcons.Mood,
             contentDescription = pack.name,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(22.dp),
+            tint = MiuixTheme.colorScheme.onBackground
         )
         return
     }
@@ -362,8 +368,8 @@ private fun ExpressionGridPage(
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 text = "暂无收藏表情",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 13.sp
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
         }
         return
@@ -398,33 +404,21 @@ private fun ExpressionGridPage(
                     onLongClick = { showMenu = true }
                 )
 
-                DropdownMenu(
+                MiuixPopupMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false }
                 ) {
-                    DropdownMenuItem(
-                        text = { Text("置顶") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = AppIcons.KeyboardArrowUp,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        },
+                    MiuixPopupMenuItem(
+                        text = "置顶",
+                        icon = AppIcons.KeyboardArrowUp,
                         onClick = {
                             showMenu = false
                             onTopExpression(item.id.toInt())
                         }
                     )
-                    DropdownMenuItem(
-                        text = { Text("取消收藏") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = AppIcons.Delete,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        },
+                    MiuixPopupMenuItem(
+                        text = "取消收藏",
+                        icon = AppIcons.Delete,
                         onClick = {
                             showMenu = false
                             onDeleteExpression(item.id.toInt())
@@ -453,8 +447,8 @@ private fun StickerPackGridPage(
         ) {
             Text(
                 text = pack.name,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MiuixTheme.textStyles.footnote2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
@@ -463,7 +457,7 @@ private fun StickerPackGridPage(
                 imageVector = AppIcons.KeyboardArrowRight,
                 contentDescription = "查看表情包详情",
                 modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MiuixTheme.colorScheme.onSurfaceVariantActions
             )
         }
 
@@ -471,8 +465,8 @@ private fun StickerPackGridPage(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = "暂无表情",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 13.sp
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
         } else {
@@ -536,7 +530,7 @@ private fun EmojiGridItem(
 
     Column(
         modifier = Modifier
-            .clip(MaterialTheme.shapes.extraSmall)
+            .clip(RoundedCornerShape(8.dp))
             .then(clickModifier),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -546,17 +540,40 @@ private fun EmojiGridItem(
             contentDescription = null,
             modifier = Modifier
                 .size(80.dp)
-                .clip(MaterialTheme.shapes.extraSmall),
+                .clip(RoundedCornerShape(8.dp)),
             contentScale = ContentScale.Fit
         )
         name?.let {
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = it,
-                style = MaterialTheme.typography.labelSmall,
+                style = MiuixTheme.textStyles.footnote2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
+    }
+}
+
+/** 表情面板的图标标签项：选中时用 Miuix 的 secondaryContainer 圆形底。 */
+@Composable
+private fun EmojiPanelTabItem(
+    selected: Boolean,
+    onClick: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .padding(horizontal = 2.dp)
+            .size(44.dp)
+            .clip(CircleShape)
+            .background(
+                if (selected) MiuixTheme.colorScheme.secondaryContainer else Color.Transparent
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        content()
     }
 }

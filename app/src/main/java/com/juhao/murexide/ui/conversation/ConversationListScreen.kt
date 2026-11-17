@@ -56,6 +56,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.juhao.murexide.ui.conversationdetail.ConversationDetailActivity
 import com.juhao.murexide.ui.conversationdetail.NewConversationActivity
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.basic.TextButton
 
 @Composable
 fun ConversationListScreen(
@@ -92,9 +94,9 @@ fun ConversationListScreen(
 
     val themeColor by UiState.themeColor
     val listContainerColor = if (themeColor == "WHITE") {
-        MaterialTheme.colorScheme.surfaceContainer
+        MiuixTheme.colorScheme.surfaceContainer
     } else {
-        MaterialTheme.colorScheme.surface
+        MiuixTheme.colorScheme.surface
     }
 
     val listState = rememberLazyListState()
@@ -348,9 +350,9 @@ fun ConversationListScreen(
                             if (mergeSticky && allowCollapseSticky) {
                                 item(key = "collapseStickyButton") {
                                     val bkgolor = if (themeColor != "WHITE") {
-                                        MaterialTheme.colorScheme.surfaceContainer
+                                        MiuixTheme.colorScheme.surfaceContainer
                                     } else {
-                                        MaterialTheme.colorScheme.surface
+                                        MiuixTheme.colorScheme.surface
                                     }
                                     ListItem(
                                         onClick = {
@@ -370,7 +372,7 @@ fun ConversationListScreen(
                                     ) {
                                         Text(
                                             if (isStickyCollapsed) "${stickyConvs.size}个置顶会话" else "折叠置顶会话",
-                                            style = MaterialTheme.typography.bodyMedium
+                                            style = MiuixTheme.textStyles.body2
                                         )
                                     }
                                 }
@@ -462,7 +464,7 @@ fun ConversationListScreen(
                         item {
                             Text(
                                 title,
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MiuixTheme.textStyles.footnote1,
                                 modifier = Modifier.padding(16.dp, 14.dp, 16.dp, 6.dp)
                             )
                         }
@@ -494,10 +496,10 @@ private fun ConversationSearchHeader(
             .padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Surface(
+        MiuixSurface(
             onClick = onSearchClick,
             shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            color = MiuixTheme.colorScheme.surfaceContainerHigh,
             modifier = Modifier.weight(1f)
         ) {
             Row(
@@ -509,13 +511,13 @@ private fun ConversationSearchHeader(
                 Icon(
                     AppIcons.Search,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = "搜索&发现",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
         }
@@ -531,9 +533,9 @@ private fun StickyConversationsRow(
 ) {
     val themeColor by UiState.themeColor
     val itemColor = if (themeColor != "WHITE") {
-        MaterialTheme.colorScheme.surfaceContainer
+        MiuixTheme.colorScheme.surfaceContainer
     } else {
-        MaterialTheme.colorScheme.surface
+        MiuixTheme.colorScheme.surface
     }
     
     LazyRow(
@@ -556,16 +558,16 @@ private fun StickyConversationsRow(
                 Box {
                     Avatar(url = conversation.avatarUrl, size = 48.dp)
                     if (conversation.certificationLevel >= 1) {
-                        Badge(
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                            contentColor = MaterialTheme.colorScheme.onSecondary,
+                        MiuixBadge(
+                            containerColor = MiuixTheme.colorScheme.secondary,
+                            contentColor = MiuixTheme.colorScheme.onSecondary,
                             modifier = Modifier
                                 .border(width = 1.dp, color = itemColor, shape = CircleShape)
                                 .align(Alignment.BottomEnd)
                         ) {
                             Text(
                                 if (conversation.certificationLevel == 1) "官" else "城",
-                                style = MaterialTheme.typography.labelSmall
+                                style = MiuixTheme.textStyles.footnote2
                             )
                         }
                     }
@@ -573,8 +575,8 @@ private fun StickyConversationsRow(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = conversation.displayName,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center
@@ -645,11 +647,11 @@ private fun SwipeableConversationItem(
 
     val themeColor by UiState.themeColor
     val listItemColor = if (isSelected)
-        MaterialTheme.colorScheme.surfaceBright
+        MiuixTheme.colorScheme.surfaceContainerHigh
     else if ((isSticky && themeColor != "WHITE") || (!isSticky && themeColor == "WHITE")) {
-        MaterialTheme.colorScheme.surfaceContainerHigh
+        MiuixTheme.colorScheme.surfaceContainerHigh
     } else {
-        MaterialTheme.colorScheme.surface
+        MiuixTheme.colorScheme.surface
     }
 
     Box(
@@ -673,7 +675,7 @@ private fun SwipeableConversationItem(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .background(MiuixTheme.colorScheme.primaryContainer)
                     .clickable(role = androidx.compose.ui.semantics.Role.Button) {
                         scope.launch { state.animateTo(SwipeState.Closed) }
                         onOpen(null)
@@ -685,12 +687,12 @@ private fun SwipeableConversationItem(
                     Icon(
                         imageVector = AppIcons.Keep,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = MiuixTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
                         text = if (isSticky) "取消置顶" else "置顶",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
@@ -698,7 +700,7 @@ private fun SwipeableConversationItem(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .background(MiuixTheme.colorScheme.errorContainer)
                     .clickable(role = androidx.compose.ui.semantics.Role.Button) {
                         scope.launch { state.animateTo(SwipeState.Closed) }
                         onOpen(null)
@@ -710,12 +712,12 @@ private fun SwipeableConversationItem(
                     Icon(
                         imageVector = AppIcons.Delete,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onErrorContainer
+                        tint = MiuixTheme.colorScheme.onErrorContainer
                     )
                     Text(
                         text = "删除",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onErrorContainer
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onErrorContainer
                     )
                 }
             }
@@ -767,9 +769,9 @@ fun ConversationItem(
             Box {
                 Avatar(url = conversation.avatarUrl, size = 52.dp)
                 if (conversation.certificationLevel >= 1) {
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.secondary,
-                        contentColor = MaterialTheme.colorScheme.onSecondary,
+                    MiuixBadge(
+                        containerColor = MiuixTheme.colorScheme.secondary,
+                        contentColor = MiuixTheme.colorScheme.onSecondary,
                         modifier = Modifier
                             .border(width = 1.dp, color = listItemColor, shape = CircleShape)
                             .align(Alignment.BottomEnd)
@@ -789,7 +791,7 @@ fun ConversationItem(
             ) {
                 Text(
                     text = conversation.displayName,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MiuixTheme.textStyles.title4,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
@@ -797,8 +799,8 @@ fun ConversationItem(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = formatTime(conversation.timestampMs),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
 
@@ -813,14 +815,14 @@ fun ConversationItem(
                     Row(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "[草稿]",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.error
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.error
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = draft,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -828,8 +830,8 @@ fun ConversationItem(
                 } else {
                     Text(
                         text = conversation.chatContent,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
@@ -865,7 +867,7 @@ fun ConversationItem(
 fun LoadingScreen(modifier: Modifier = Modifier) = Box(
     modifier = modifier.fillMaxSize(),
     contentAlignment = Alignment.Center
-) { ContainedLoadingIndicator() }
+) { MiuixLoadingIndicator() }
 
 @Composable
 private fun SearchRow(result: HomeSearchResult, onClick: (HomeSearchResult) -> Unit) {
@@ -888,10 +890,10 @@ private fun SearchRow(result: HomeSearchResult, onClick: (HomeSearchResult) -> U
             if (result.introduction.isNotBlank()) {
                 Text(
                     result.introduction,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MiuixTheme.textStyles.footnote2,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
         }
@@ -907,18 +909,18 @@ private fun Badges(
 ) {
     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         if (isAtMentioned) {
-            Badge(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError
+            MiuixBadge(
+                containerColor = MiuixTheme.colorScheme.error,
+                contentColor = MiuixTheme.colorScheme.onError
             ) {
-                Text("@", style = MaterialTheme.typography.labelSmall)
+                Text("@", style = MiuixTheme.textStyles.footnote2)
             }
         }
 
         if (hasUnread) {
-            Badge(
-                containerColor = if (doNotDisturb) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
-                contentColor = if (doNotDisturb) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary
+            MiuixBadge(
+                containerColor = if (doNotDisturb) MiuixTheme.colorScheme.surfaceVariant else MiuixTheme.colorScheme.primary,
+                contentColor = if (doNotDisturb) MiuixTheme.colorScheme.onSurfaceVariantSummary else MiuixTheme.colorScheme.onPrimary
             ) {
                 AnimatedContent(
                     targetState = unreadCount,
@@ -943,7 +945,7 @@ private fun Badges(
                     },
                     label = "unread_count"
                 ) { count ->
-                    Text("$count", style = MaterialTheme.typography.labelSmall)
+                    Text("$count", style = MiuixTheme.textStyles.footnote2)
                 }
             }
         }

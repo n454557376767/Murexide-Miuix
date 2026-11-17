@@ -36,7 +36,11 @@ fun MiuixLoadingIndicator(
     size: Dp = 32.dp,
     color: Color = MiuixTheme.colorScheme.primary,
     strokeWidth: Dp = 3.dp,
+    // 传了 progress 就是确定进度：画一段固定角度的圆弧，并可选画轨道
+    progress: (() -> Float)? = null,
+    trackColor: Color? = null,
 ) {
+    val target = progress?.invoke()?.coerceIn(0f, 1f)
     val transition = rememberInfiniteTransition(label = "miuix_loading")
     val rotation by transition.animateFloat(
         initialValue = 0f,
@@ -51,18 +55,44 @@ fun MiuixLoadingIndicator(
     Canvas(modifier = modifier.size(size)) {
         val stroke = strokeWidth.toPx()
         val inset = stroke / 2f
-        drawArc(
-            color = color,
-            startAngle = rotation,
-            sweepAngle = 270f,
-            useCenter = false,
-            topLeft = androidx.compose.ui.geometry.Offset(inset, inset),
-            size = androidx.compose.ui.geometry.Size(
-                width = this.size.width - stroke,
-                height = this.size.height - stroke
-            ),
-            style = Stroke(width = stroke, cap = StrokeCap.Round)
+        val arcSize = androidx.compose.ui.geometry.Size(
+            width = this.size.width - stroke,
+            height = this.size.height - stroke
         )
+        if (target == null) {
+            // 不确定进度：270° 圆弧匀速旋转
+            drawArc(
+                color = color,
+                startAngle = rotation,
+                sweepAngle = 270f,
+                useCenter = false,
+                topLeft = androidx.compose.ui.geometry.Offset(inset, inset),
+                size = arcSize,
+                style = Stroke(width = stroke, cap = StrokeCap.Round)
+            )
+        } else {
+            // 确定进度：轨道 + 按比例绘制的前景弧
+            trackColor?.let {
+                drawArc(
+                    color = it,
+                    startAngle = 0f,
+                    sweepAngle = 360f,
+                    useCenter = false,
+                    topLeft = androidx.compose.ui.geometry.Offset(inset, inset),
+                    size = arcSize,
+                    style = Stroke(width = stroke, cap = StrokeCap.Round)
+                )
+            }
+            drawArc(
+                color = color,
+                startAngle = -90f,
+                sweepAngle = 360f * target,
+                useCenter = false,
+                topLeft = androidx.compose.ui.geometry.Offset(inset, inset),
+                size = arcSize,
+                style = Stroke(width = stroke, cap = StrokeCap.Round)
+            )
+        }
     }
 }
 
@@ -99,6 +129,24 @@ fun MiuixLinearProgress(
             )
         }
     }
+}
+
+/**
+ * [MiuixLinearProgress] 的 lambda 重载：兼容 Material3 的 \`progress = { ... }\` 调用形状。
+ */
+@Composable
+fun MiuixLinearProgress(
+    progress: () -> Float,
+    modifier: Modifier = Modifier,
+    color: Color = MiuixTheme.colorScheme.primary,
+    trackColor: Color = MiuixTheme.colorScheme.secondaryContainer
+) {
+    MiuixLinearProgress(
+        progress = progress(),
+        modifier = modifier,
+        color = color,
+        trackColor = trackColor
+    )
 }
 
 /**

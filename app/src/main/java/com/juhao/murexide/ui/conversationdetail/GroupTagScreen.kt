@@ -12,7 +12,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,6 +34,13 @@ import com.juhao.murexide.data.GroupTag
 import com.juhao.murexide.ui.components.*
 import com.juhao.murexide.ui.icons.AppIcons
 import com.juhao.murexide.ui.icons.AutoMirroredIcon
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private val tagPalette = listOf(
     "#2196F3", "#E91E63", "#4CAF50", "#FF9800", "#9C27B0", "#00BCD4",
@@ -76,24 +82,17 @@ fun GroupTagScreen(
 
     val deleteTarget = state.deleteTarget
     if (state.showDeleteConfirm && deleteTarget != null) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissDelete,
-            icon = { Icon(AppIcons.Delete, null, tint = MaterialTheme.colorScheme.error) },
-            title = { Text("删除标签") },
-            text = { Text("确定要删除标签「${deleteTarget.tag}」吗？已关联该标签的成员会失去此标签。") },
-            confirmButton = {
-                TextButton(onClick = viewModel::confirmDelete) {
-                    Text("删除", color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissDelete) { Text("取消") }
-            }
+        MiuixAlertDialog(
+            show = true,
+            title = "删除标签",
+            summary = "确定要删除标签「${deleteTarget.tag}」吗？已关联该标签的成员会失去此标签。",
+            confirmText = "删除",
+            onConfirm = viewModel::confirmDelete,
+            onDismissRequest = viewModel::dismissDelete
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TagListPage(
     isAdmin: Boolean,
@@ -110,63 +109,50 @@ private fun TagListPage(
         onLoadMore = viewModel::loadMoreTags
     )
 
-    StyledScaffold(
-        title = { Text("标签管理") },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                AutoMirroredIcon(AppIcons.ArrowBack, contentDescription = "返回")
-            }
-        },
+    MiuixPageScaffold(
+        title = "标签管理",
+        onBack = onBack,
         floatingActionButton = {
             if (isAdmin) {
-                ExtendedFloatingActionButton(
+                // Miuix 没有 ExtendedFloatingActionButton，改用带图标的主色按钮
+                Button(
                     onClick = { viewModel.openEditor(null) },
-                    icon = { Icon(AppIcons.Add, contentDescription = null) },
-                    text = { Text("新建标签") }
-                )
+                    colors = ButtonDefaults.buttonColorsPrimary()
+                ) {
+                    Icon(AppIcons.Add, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("新建标签")
+                }
             }
         },
-        extraContent = {
-            SearchBar(
-                query = state.keyword,
-                onQueryChange = viewModel::searchTags,
-                onSearch = {},
-                active = false,
-                onActiveChange = {},
+        topBarBottom = {
+            MiuixSearchField(
+                value = state.keyword,
+                onValueChange = viewModel::searchTags,
+                placeholder = "搜索标签",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
-                enabled = true,
-                placeholder = { Text("搜索标签") },
-                leadingIcon = { Icon(AppIcons.Search, contentDescription = null) },
-                trailingIcon = {
-                    if (state.keyword.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.searchTags("") }) {
-                            Icon(AppIcons.Close, contentDescription = "清除")
-                        }
-                    }
-                },
-                shape = SearchBarDefaults.inputFieldShape,
-                colors = SearchBarDefaults.colors(),
-                tonalElevation = SearchBarDefaults.TonalElevation,
-                shadowElevation = SearchBarDefaults.ShadowElevation,
-                windowInsets = WindowInsets(0),
-                interactionSource = null
-            ) {}
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            )
         }
     ) { padding ->
         when {
             state.isLoading && state.tags.isEmpty() -> Box(
                 Modifier.fillMaxSize().padding(padding),
                 Alignment.Center
-            ) { CircularProgressIndicator() }
+            ) { MiuixLoadingIndicator() }
 
             state.tags.isEmpty() && state.error != null -> EmptyPlaceholder(
                 modifier = Modifier.padding(padding),
                 icon = AppIcons.Warning,
                 title = "加载失败",
                 subtitle = state.error,
-                primaryButton = { Button(onClick = viewModel::loadTags) { Text("重试") } }
+                primaryButton = {
+                    Button(
+                        onClick = viewModel::loadTags,
+                        colors = ButtonDefaults.buttonColorsPrimary()
+                    ) { Text("重试") }
+                }
             )
 
             state.tags.isEmpty() -> EmptyPlaceholder(
@@ -197,10 +183,7 @@ private fun TagListPage(
                     item(key = "tags-load-more") {
                         Box(Modifier.fillMaxWidth().height(52.dp), Alignment.Center) {
                             if (state.isLoadingMore) {
-                                CircularProgressIndicator(
-                                    Modifier.size(22.dp),
-                                    strokeWidth = 2.dp
-                                )
+                                MiuixLoadingIndicator(size = 22.dp, strokeWidth = 2.dp)
                             }
                         }
                     }
@@ -219,42 +202,71 @@ private fun TagRow(
     onDelete: () -> Unit
 ) {
     var expanded by remember(tag.id) { mutableStateOf(false) }
-    ListItem(
-        onClick = onClick,
-        leadingContent = {
+    // Miuix 卡片行替代 ListItem；颜色点 + 标题 + 描述 + 尾部菜单
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp)
+            .padding(bottom = 8.dp)
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(
                 Modifier
                     .size(36.dp)
                     .clip(CircleShape)
                     .background(tagColor(tag.color))
             )
-        },
-        trailingContent = {
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = tag.tag,
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = tag.desc.ifBlank { "排序 ${tag.sort}" },
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
             if (isAdmin) {
                 Box {
                     IconButton(
                         onClick = { expanded = true },
                         modifier = Modifier.size(44.dp)
                     ) {
-                        Icon(AppIcons.MoreVert, contentDescription = "更多")
+                        Icon(
+                            imageVector = AppIcons.MoreVert,
+                            contentDescription = "更多",
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
+                        )
                     }
-                    ExpressiveDropdownMenu(
+                    MiuixPopupMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
                     ) {
-                        DropdownMenuItem(
-                            text = { Text("编辑标签") },
-                            leadingIcon = { Icon(AppIcons.Edit, null) },
+                        MiuixPopupMenuItem(
+                            text = "编辑标签",
+                            icon = AppIcons.Edit,
                             onClick = {
                                 expanded = false
                                 onEdit()
                             }
                         )
-                        DropdownMenuItem(
-                            text = { Text("删除标签", color = MaterialTheme.colorScheme.error) },
-                            leadingIcon = {
-                                Icon(AppIcons.Delete, null, tint = MaterialTheme.colorScheme.error)
-                            },
+                        MiuixPopupMenuItem(
+                            text = "删除标签",
+                            icon = AppIcons.Delete,
+                            tint = MiuixTheme.colorScheme.error,
                             onClick = {
                                 expanded = false
                                 onDelete()
@@ -263,28 +275,10 @@ private fun TagRow(
                     }
                 }
             }
-        },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-    ) {
-        Column(Modifier.fillMaxWidth()) {
-            Text(
-                text = tag.tag,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = tag.desc.ifBlank { "排序 ${tag.sort}" },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TagMemberPage(
     isAdmin: Boolean,
@@ -305,62 +299,26 @@ private fun TagMemberPage(
         onLoadMore = viewModel::loadMoreMembers
     )
 
-    StyledScaffold(
-        title = {
-            Text(
-                text = tag.tag,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
-        subtitle = {
-            Text(
-                text = "已添加 ${state.boundUserIds.size} 人",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = viewModel::closeTag) {
-                AutoMirroredIcon(AppIcons.ArrowBack, contentDescription = "返回")
-            }
-        },
-        extraContent = {
-            SearchBar(
-                query = state.memberKeyword,
-                onQueryChange = viewModel::searchMembers,
-                onSearch = {},
-                active = false,
-                onActiveChange = {},
+    MiuixPageScaffold(
+        title = tag.tag,
+        subtitle = "已添加 ${state.boundUserIds.size} 人",
+        onBack = viewModel::closeTag,
+        topBarBottom = {
+            MiuixSearchField(
+                value = state.memberKeyword,
+                onValueChange = viewModel::searchMembers,
+                placeholder = "搜索成员",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
-                enabled = true,
-                placeholder = { Text("搜索成员") },
-                leadingIcon = { Icon(AppIcons.Search, contentDescription = null) },
-                trailingIcon = {
-                    if (state.memberKeyword.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.searchMembers("") }) {
-                            Icon(AppIcons.Close, contentDescription = "清除")
-                        }
-                    }
-                },
-                shape = SearchBarDefaults.inputFieldShape,
-                colors = SearchBarDefaults.colors(),
-                tonalElevation = SearchBarDefaults.TonalElevation,
-                shadowElevation = SearchBarDefaults.ShadowElevation,
-                windowInsets = WindowInsets(0),
-                interactionSource = null
-            ) {}
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            )
         }
     ) { padding ->
         when {
             state.isLoadingMembers && state.members.isEmpty() -> Box(
                 Modifier.fillMaxSize().padding(padding),
                 Alignment.Center
-            ) { CircularProgressIndicator() }
+            ) { MiuixLoadingIndicator() }
 
             state.members.isEmpty() -> EmptyPlaceholder(
                 modifier = Modifier.padding(padding),
@@ -389,10 +347,7 @@ private fun TagMemberPage(
                     item(key = "members-load-more") {
                         Box(Modifier.fillMaxWidth().height(52.dp), Alignment.Center) {
                             if (state.isLoadingMoreMembers) {
-                                CircularProgressIndicator(
-                                    Modifier.size(22.dp),
-                                    strokeWidth = 2.dp
-                                )
+                                MiuixLoadingIndicator(size = 22.dp, strokeWidth = 2.dp)
                             }
                         }
                     }
@@ -409,45 +364,49 @@ private fun TagMemberRow(
     pending: Boolean,
     onClick: () -> Unit
 ) {
-    ListItem(
-        onClick = onClick,
-        leadingContent = { Avatar(url = member.avatarUrl, size = 44.dp) },
-        trailingContent = {
-            if (pending) {
-                CircularProgressIndicator(
-                    Modifier.size(20.dp),
-                    strokeWidth = 2.dp
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp)
+            .padding(bottom = 8.dp)
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Avatar(url = member.avatarUrl, size = 44.dp)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = member.name,
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
+                Text(
+                    text = when {
+                        member.permissionLevel == 100 -> "群主"
+                        member.permissionLevel >= 2 -> "管理员"
+                        else -> "成员"
+                    },
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant
+                )
+            }
+            if (pending) {
+                MiuixLoadingIndicator(size = 20.dp, strokeWidth = 2.dp)
             } else {
                 Icon(
                     imageVector = if (bound) AppIcons.CheckCircle else AppIcons.CheckBoxOutlineBlank,
                     contentDescription = if (bound) "移除标签" else "添加标签",
-                    tint = if (bound) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.outline
-                    }
+                    tint = if (bound) MiuixTheme.colorScheme.primary
+                    else MiuixTheme.colorScheme.onSurfaceVariantActions
                 )
             }
-        },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-    ) {
-        Column(Modifier.fillMaxWidth()) {
-            Text(
-                text = member.name,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = when {
-                    member.permissionLevel == 100 -> "群主"
-                    member.permissionLevel >= 2 -> "管理员"
-                    else -> "成员"
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
@@ -457,41 +416,43 @@ private fun TagEditorDialog(
     state: GroupTagUiState,
     viewModel: GroupTagViewModel
 ) {
-    AlertDialog(
-        onDismissRequest = { if (!state.isSubmitting) viewModel.closeEditor() },
-        title = { Text(if (state.draftIsNew) "新建标签" else "编辑标签") },
-        text = {
+    MiuixAlertDialog(
+        show = true,
+        title = if (state.draftIsNew) "新建标签" else "编辑标签",
+        confirmText = if (state.isSubmitting) "保存中…" else "保存",
+        confirmEnabled = !state.isSubmitting,
+        onConfirm = viewModel::saveDraft,
+        onDismissRequest = { if (!state.isSubmitting) viewModel.closeEditor() }
+    ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                OutlinedTextField(
+                MiuixTextField(
                     value = state.draftName,
                     onValueChange = viewModel::updateDraftName,
-                    label = { Text("标签名称") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    placeholder = "标签名称",
+                    singleLine = true
                 )
-                OutlinedTextField(
+                MiuixTextField(
                     value = state.draftDesc,
                     onValueChange = viewModel::updateDraftDesc,
-                    label = { Text("标签描述") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    placeholder = "标签描述",
+                    singleLine = true
                 )
-                OutlinedTextField(
+                MiuixTextField(
                     value = state.draftSort,
                     onValueChange = viewModel::updateDraftSort,
-                    label = { Text("排序") },
+                    placeholder = "排序",
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
                 Text(
                     text = "标签颜色",
-                    style = MaterialTheme.typography.labelLarge
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     tagPalette.chunked(6).forEach { row ->
@@ -520,29 +481,7 @@ private fun TagEditorDialog(
                     }
                 }
             }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = !state.isSubmitting,
-                onClick = viewModel::saveDraft
-            ) {
-                if (state.isSubmitting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text("保存")
-                }
-            }
-        },
-        dismissButton = {
-            TextButton(
-                enabled = !state.isSubmitting,
-                onClick = viewModel::closeEditor
-            ) { Text("取消") }
         }
-    )
 }
 
 @Composable

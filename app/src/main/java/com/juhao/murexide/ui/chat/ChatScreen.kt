@@ -45,7 +45,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.material3.*
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.rememberModalBottomSheetState
+top.yukonga.miuix.kmp.basic.HorizontalDivider
+top.yukonga.miuix.kmp.basic.Icon
+top.yukonga.miuix.kmp.basic.IconButton
+top.yukonga.miuix.kmp.basic.Scaffold
+top.yukonga.miuix.kmp.basic.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -119,6 +125,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.milliseconds
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.basic.TextButton
 
 private enum class ChatInputPanel {
     Emoji,
@@ -265,9 +273,9 @@ fun ChatScreen(
     val uiState by viewModel.screenState.collectAsState()
     val themeColor by UiState.themeColor
     val chatBackgroundColor = if (themeColor == "WHITE") {
-        MaterialTheme.colorScheme.surfaceContainer
+        MiuixTheme.colorScheme.surfaceContainer
     } else {
-        MaterialTheme.colorScheme.surface
+        MiuixTheme.colorScheme.surface
     }
     val forwardViewModel: ForwardViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
         key = "forward_${chatType}_$chatId",
@@ -865,55 +873,44 @@ fun ChatScreen(
     }
 
     if (jumpConfirmVisible) {
-        AlertDialog(
-            onDismissRequest = { jumpConfirmVisible = false },
-            title = { Text("跳转到未读消息") },
-            text = {
-                Text("需要加载 ${viewModel.getOpenedUnreadCount()} 条未读消息，可能耗时较长，确定开始跳转？")
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    jumpConfirmVisible = false
-                    scope.launch {
-                        viewModel.jumpToUnread { current, total ->
-                            jumpProgress = current to total
-                        }
-                        jumpProgress = null
-                        val target = viewModel.getJumpTargetIndex()
-                        if (target >= 0) {
-                            listState.animateScrollToItem(target)
-                        }
-                        hasJumpedToUnread = true
+        MiuixAlertDialog(
+            show = true,
+            title = "跳转到未读消息",
+            summary = "需要加载 ${viewModel.getOpenedUnreadCount()} 条未读消息，可能耗时较长，确定开始跳转？",
+            confirmText = "确定",
+            onConfirm = {
+                jumpConfirmVisible = false
+                scope.launch {
+                    viewModel.jumpToUnread { current, total ->
+                        jumpProgress = current to total
                     }
-                }) {
-                    Text("确定")
+                    jumpProgress = null
+                    val target = viewModel.getJumpTargetIndex()
+                    if (target >= 0) {
+                        listState.animateScrollToItem(target)
+                    }
+                    hasJumpedToUnread = true
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { jumpConfirmVisible = false }) {
-                    Text("取消")
-                }
-            }
+            onDismissRequest = { jumpConfirmVisible = false }
         )
     }
 
     jumpProgress?.let { (current, total) ->
         if (current < total) {
-            AlertDialog(
-                onDismissRequest = { },
-                title = { Text("正在加载未读消息") },
-                text = {
-                    Column {
-                        Text("已加载 $current / $total 条")
-                        Spacer(Modifier.height(8.dp))
-                        LinearProgressIndicator(
-                            progress = { if (total > 0) current.toFloat() / total else 0f },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                },
-                confirmButton = { }
-            )
+            MiuixAlertDialog(
+                show = true,
+                title = "正在加载未读消息",
+                summary = "已加载 $current / $total 条",
+                confirmText = null,
+                dismissText = null,
+                onDismissRequest = { }
+            ) {
+                MiuixLinearProgress(
+                    progress = { if (total > 0) current.toFloat() / total else 0f },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
     
@@ -936,7 +933,7 @@ fun ChatScreen(
         modifier = modifier.fillMaxSize(),
         containerColor = chatBackgroundColor,
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
+            MiuixSnackbarHost(hostState = snackbarHostState)
         },
         topBar = {
             Column(
@@ -977,16 +974,16 @@ fun ChatScreen(
                                             )
                                         }
                                         if (backUnreadCount > 0) {
-                                            Badge(
+                                            MiuixBadge(
                                                 modifier = Modifier
                                                     .align(Alignment.BottomEnd)
                                                     .padding(6.dp),
-                                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                containerColor = MiuixTheme.colorScheme.surfaceVariant,
+                                                contentColor = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                             ) {
                                                 Text(
                                                     text = if (backUnreadCount > 99) "99+" else backUnreadCount.toString(),
-                                                    style = MaterialTheme.typography.labelSmall
+                                                    style = MiuixTheme.textStyles.footnote2
                                                 )
                                             }
                                         }
@@ -1016,7 +1013,7 @@ fun ChatScreen(
                                 ) {
                                     Text(
                                         "已选中",
-                                        style = MaterialTheme.typography.titleMedium,
+                                        style = MiuixTheme.textStyles.title4,
                                         fontWeight = FontWeight.Bold
                                     )
                                     AnimatedContent(
@@ -1044,13 +1041,13 @@ fun ChatScreen(
                                     ) { count ->
                                         Text(
                                             text = "$count",
-                                            style = MaterialTheme.typography.titleMedium,
+                                            style = MiuixTheme.textStyles.title4,
                                             fontWeight = FontWeight.Bold
                                         )
                                     }
                                     Text(
                                         "条",
-                                        style = MaterialTheme.typography.titleMedium,
+                                        style = MiuixTheme.textStyles.title4,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -1062,7 +1059,7 @@ fun ChatScreen(
                                     Column {
                                         Text(
                                             text = chatName,
-                                            style = MaterialTheme.typography.bodyLarge,
+                                            style = MiuixTheme.textStyles.body1,
                                             fontWeight = FontWeight.Bold,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
@@ -1070,24 +1067,24 @@ fun ChatScreen(
                                         if (chatType == 2 && uiState.memberCount != null) {
                                             Text(
                                                 text = "${uiState.memberCount} 位成员",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                style = MiuixTheme.textStyles.footnote2,
+                                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                                 maxLines = 1
                                             )
                                         }
                                         if (chatType == 3 && uiState.usageCount != null) {
                                             Text(
                                                 text = "${uiState.usageCount} 人使用",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                style = MiuixTheme.textStyles.footnote2,
+                                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                                 maxLines = 1
                                             )
                                         }
                                         if (chatType == 1 && uiState.continuousOnlineDay != null) {
                                             Text(
                                                 text = "连续在线 ${uiState.continuousOnlineDay} 天",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                style = MiuixTheme.textStyles.footnote2,
+                                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                                 maxLines = 1
                                             )
                                         }
@@ -1190,26 +1187,21 @@ fun ChatScreen(
                                         .clickable { showMoreMenu = true },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    ExpressiveDropdownMenu(
+                                    MiuixPopupMenu(
                                         expanded = showMoreMenu,
                                         onDismissRequest = { showMoreMenu = false }
                                     ) {
-                                        DropdownMenuItem(
-                                            text = { Text("刷新") },
+                                        MiuixPopupMenuItem(
+                                            text = "刷新",
+                                            icon = AppIcons.Refresh,
                                             onClick = {
                                                 showMoreMenu = false
                                                 viewModel.refresh()
-                                            },
-                                            leadingIcon = {
-                                                Icon(
-                                                    AppIcons.Refresh,
-                                                    contentDescription = null
-                                                )
                                             }
                                         )
-                                        DropdownMenuItem(
-                                            text = { Text("搜索聊天记录") },
-                                            leadingIcon = { Icon(AppIcons.Search, null) },
+                                        MiuixPopupMenuItem(
+                                            text = "搜索聊天记录",
+                                            icon = AppIcons.Search,
                                             onClick = {
                                                 showMoreMenu = false
                                                 ChatSearchActivity.start(
@@ -1221,23 +1213,18 @@ fun ChatScreen(
                                             }
                                         )
                                         if (chatType == 2) {
-                                            DropdownMenuItem(
-                                                text = { Text("我的群名称") },
+                                            MiuixPopupMenuItem(
+                                                text = "我的群名称",
+                                                icon = AppIcons.DriveFileRenameOutline,
                                                 onClick = {
                                                     showMoreMenu = false
                                                     showEditNickNameDialog = true
-                                                },
-                                                leadingIcon = {
-                                                    Icon(
-                                                        AppIcons.DriveFileRenameOutline,
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(24.dp)
-                                                    )
                                                 }
                                             )
                                         }
-                                        DropdownMenuItem(
-                                            text = { Text("会话详情") },
+                                        MiuixPopupMenuItem(
+                                            text = "会话详情",
+                                            icon = AppIcons.Info,
                                             onClick = {
                                                 showMoreMenu = false
                                                 ConversationDetailActivity.start(
@@ -1246,13 +1233,6 @@ fun ChatScreen(
                                                     chatType = chatType,
                                                     chatName = chatName,
                                                     chatAvatar = chatAvatar
-                                                )
-                                            },
-                                            leadingIcon = {
-                                                Icon(
-                                                    AppIcons.Info,
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(24.dp)
                                                 )
                                             }
                                         )
@@ -1269,7 +1249,7 @@ fun ChatScreen(
                 )
 
                 val panelShape = RoundedCornerShape(28.dp)
-                val panelGlassColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.8f)
+                val panelGlassColor = MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.8f)
                 val panelModifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 6.dp, vertical = 4.dp)
@@ -1289,7 +1269,7 @@ fun ChatScreen(
                     Box(modifier = panelModifier) {
                         ProvideLiquidGlassContentColor(
                             glassColor = panelGlassColor,
-                            preferredColor = MaterialTheme.colorScheme.onSurface,
+                            preferredColor = MiuixTheme.colorScheme.onSurface,
                         ) {
                             BoardPanel(
                                 boards = uiState.boardPanel.boards,
@@ -1312,7 +1292,7 @@ fun ChatScreen(
                     Box(modifier = panelModifier) {
                         ProvideLiquidGlassContentColor(
                             glassColor = panelGlassColor,
-                            preferredColor = MaterialTheme.colorScheme.onSurface,
+                            preferredColor = MiuixTheme.colorScheme.onSurface,
                         ) {
                             Column(
                                 modifier = Modifier
@@ -1322,10 +1302,11 @@ fun ChatScreen(
                             ) {
                                 Text(
                                     text = "正在定位消息…",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    style = MiuixTheme.textStyles.body2,
+                                    color = MiuixTheme.colorScheme.onSurface
                                 )
-                                LinearProgressIndicator(
+                                // 不确定进度（上传中）走 Miuix 的流动条
+                                MiuixIndeterminateLinearProgress(
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }
@@ -1351,8 +1332,8 @@ fun ChatScreen(
                             Brush.verticalGradient(
                                 colors = listOf(
                                     Color.Transparent,
-                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.55f),
-                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+                                    MiuixTheme.colorScheme.surface.copy(alpha = 0.55f),
+                                    MiuixTheme.colorScheme.surface.copy(alpha = 0.85f)
                                 )
                             )
                         )
@@ -1478,7 +1459,7 @@ fun ChatScreen(
                                             .width(3.dp)
                                             .height(16.dp)
                                             .background(
-                                                MaterialTheme.colorScheme.primary,
+                                                MiuixTheme.colorScheme.primary,
                                                 RoundedCornerShape(2.dp)
                                             )
                                     )
@@ -1486,15 +1467,15 @@ fun ChatScreen(
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = uiState.replyTo?.senderName ?: "用户",
-                                            style = MaterialTheme.typography.labelSmall,
+                                            style = MiuixTheme.textStyles.footnote2,
                                             fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary
+                                            color = MiuixTheme.colorScheme.primary
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(
                                             text = uiState.replyTo?.getDisplayContent()
                                                 ?: "消息",
-                                            style = MaterialTheme.typography.labelSmall,
+                                            style = MiuixTheme.textStyles.footnote2,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
@@ -1527,21 +1508,21 @@ fun ChatScreen(
                                         AppIcons.Edit,
                                         contentDescription = null,
                                         modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.primary
+                                        tint = MiuixTheme.colorScheme.primary
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = "编辑中……",
-                                        style = MaterialTheme.typography.labelSmall,
+                                        style = MiuixTheme.textStyles.footnote2,
                                         fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = MiuixTheme.colorScheme.primary
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = uiState.editingMessage?.getDisplayContent()
                                             ?: "",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MiuixTheme.textStyles.footnote2,
+                                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         modifier = Modifier.weight(1f)
@@ -1574,13 +1555,13 @@ fun ChatScreen(
                                         AppIcons.Code,
                                         contentDescription = null,
                                         modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.primary
+                                        tint = MiuixTheme.colorScheme.primary
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = "指令: ${uiState.pendingCommandName ?: ""}",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        style = MiuixTheme.textStyles.footnote2,
+                                        color = MiuixTheme.colorScheme.primary,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         modifier = Modifier.weight(1f)
@@ -1980,7 +1961,7 @@ fun ChatScreen(
                                     .padding(16.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                ContainedLoadingIndicator()
+                                MiuixLoadingIndicator()
                             }
                         }
                     }
@@ -2023,11 +2004,11 @@ fun ChatScreen(
                             end = 12.dp
                         )
                 ) {
-                    BadgedBox(
+                    MiuixBadgedBox(
                         badge = {
-                            Badge(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                contentColor = MaterialTheme.colorScheme.onError
+                            MiuixBadge(
+                                containerColor = MiuixTheme.colorScheme.error,
+                                contentColor = MiuixTheme.colorScheme.onError
                             ) {
                                 val unread = viewModel.getOpenedUnreadCount()
                                 Text(
@@ -2037,7 +2018,7 @@ fun ChatScreen(
                             }
                         }
                     ) {
-                        SmallFloatingActionButton(
+                        MiuixSmallFloatingActionButton(
                             onClick = {
                                 if (viewModel.shouldConfirmUnreadJump()) {
                                     jumpConfirmVisible = true
@@ -2105,27 +2086,15 @@ fun ChatScreen(
     }
 
     if (recallDialog.isOpen) {
-        AlertDialog(
+        MiuixAlertDialog(
+            show = true,
+            title = "撤回消息",
+            summary = "确定要撤回这条消息吗？",
+            confirmText = if (recallDialog.isSubmitting) "撤回中…" else "确定",
+            confirmEnabled = !recallDialog.isSubmitting,
+            onConfirm = { viewModel.recallMessage() },
             onDismissRequest = {
                 if (!recallDialog.isSubmitting) viewModel.hideRecallDialog()
-            },
-            title = { Text("撤回消息") },
-            text = { Text("确定要撤回这条消息吗？") },
-            confirmButton = {
-                TextButton(
-                    onClick = { viewModel.recallMessage() },
-                    enabled = !recallDialog.isSubmitting
-                ) {
-                    Text(if (recallDialog.isSubmitting) "撤回中…" else "确定")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { viewModel.hideRecallDialog() },
-                    enabled = !recallDialog.isSubmitting
-                ) {
-                    Text("取消")
-                }
             }
         )
     }
@@ -2141,43 +2110,33 @@ fun ChatScreen(
     val conversationDetailRepository = ConversationDetailRepository()
 
     if (showEditNickNameDialog) {
-        AlertDialog(
-            onDismissRequest = { showEditNickNameDialog = false },
-            icon = { Icon(AppIcons.DriveFileRenameOutline, contentDescription = null) },
-            title = { Text("我的群名称") },
-            text = {
-                OutlinedTextField(
-                    value = uiState.myGroupNickname ?: "",
-                    onValueChange = viewModel::updateNickName,
-                    label = { Text("群名称（为空复原）") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    showEditNickNameDialog = false
-                    scope.launch {
-                        conversationDetailRepository.editMyGroupNickname(
-                            viewModel.token,
-                            chatId,
-                            uiState.myGroupNickname ?: ""
-                        ).onSuccess {
-                            Toast.makeText(context, "修改成功", Toast.LENGTH_SHORT).show()
-                        }.onFailure {
-                            Toast.makeText(context, "修改失败", Toast.LENGTH_SHORT).show()
-                        }
+        MiuixAlertDialog(
+            show = true,
+            title = "我的群名称",
+            confirmText = "确定",
+            onConfirm = {
+                showEditNickNameDialog = false
+                scope.launch {
+                    conversationDetailRepository.editMyGroupNickname(
+                        viewModel.token,
+                        chatId,
+                        uiState.myGroupNickname ?: ""
+                    ).onSuccess {
+                        Toast.makeText(context, "修改成功", Toast.LENGTH_SHORT).show()
+                    }.onFailure {
+                        Toast.makeText(context, "修改失败", Toast.LENGTH_SHORT).show()
                     }
-                }) {
-                    Text("确定")
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showEditNickNameDialog = false }) {
-                    Text("取消")
-                }
-            }
-        )
+            onDismissRequest = { showEditNickNameDialog = false }
+        ) {
+            MiuixTextField(
+                value = uiState.myGroupNickname ?: "",
+                onValueChange = viewModel::updateNickName,
+                placeholder = "群名称（为空复原）",
+                singleLine = true
+            )
+        }
     }
 }
 
@@ -2191,17 +2150,17 @@ private fun UnreadDivider(modifier: Modifier = Modifier) {
     ) {
         HorizontalDivider(
             modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            color = MiuixTheme.colorScheme.primary.copy(alpha = 0.5f)
         )
         Text(
             text = "以下为新消息",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary,
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 8.dp)
         )
         HorizontalDivider(
             modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            color = MiuixTheme.colorScheme.primary.copy(alpha = 0.5f)
         )
     }
 }

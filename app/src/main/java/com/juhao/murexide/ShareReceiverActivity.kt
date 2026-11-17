@@ -40,6 +40,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import com.juhao.murexide.ui.components.MiuixSurface
+import top.yukonga.miuix.kmp.basic.TextButton
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
 
 sealed class SharePayload {
     data class Text(
@@ -89,9 +93,9 @@ class ShareReceiverActivity : ComponentActivity() {
 
         setContent {
             MurexideTheme {
-                Surface(
+                MiuixSurface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MiuixTheme.colorScheme.background
                 ) {
                     val payload = payloadState.value
                     val accountId = accountIdState.value
@@ -324,24 +328,24 @@ private fun ShareTargetItem(
         },
         trailingContent = {
             if (isSending) {
-                CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+                MiuixLoadingIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
             }
         },
         colors = ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MiuixTheme.colorScheme.surface
         )
     ) {
         Column {
             Text(
                 text = conversation.displayName,
-                style = MaterialTheme.typography.titleSmall,
+                style = MiuixTheme.textStyles.footnote1,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = conversation.chatContent,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MiuixTheme.textStyles.body2,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -352,12 +356,12 @@ private fun ShareTargetItem(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun CenterLoading() = Box(Modifier.fillMaxSize(), Alignment.Center) {
-    ContainedLoadingIndicator()
+    MiuixLoadingIndicator()
 }
 
 @Composable
 private fun CenterHint(text: String) = Box(Modifier.fillMaxSize(), Alignment.Center) {
-    Text(text, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(text, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
 }
 
 private object ShareDispatcher {

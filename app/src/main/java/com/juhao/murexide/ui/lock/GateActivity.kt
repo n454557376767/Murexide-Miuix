@@ -12,7 +12,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,9 +21,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.juhao.murexide.datastore.SettingsStorage
+import com.juhao.murexide.ui.components.MiuixTextField
 import com.juhao.murexide.ui.icons.AppIcons
 import com.juhao.murexide.ui.theme.MurexideTheme
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 class GateActivity : ComponentActivity() {
 
@@ -110,15 +115,16 @@ private fun GateContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(MiuixTheme.colorScheme.background)
         )
         return
     }
     if (!ready) return
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MiuixTheme.colorScheme.background)
     ) {
         val scrollState = rememberScrollState()
         Box(
@@ -137,13 +143,13 @@ private fun GateContent(
                     modifier = Modifier
                         .size(72.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
+                        .background(MiuixTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = AppIcons.Lock,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        tint = MiuixTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -152,35 +158,42 @@ private fun GateContent(
 
                 Text(
                     text = "应用已锁定",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MiuixTheme.textStyles.title2,
+                    color = MiuixTheme.colorScheme.onBackground
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "请输入应用锁密码以继续",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                OutlinedTextField(
+                MiuixTextField(
                     value = pin,
                     onValueChange = {
                         pin = it.filter { c -> c.isDigit() }.take(12)
                         error = null
                     },
-                    label = { Text("密码") },
+                    placeholder = "密码",
                     singleLine = true,
-                    isError = error != null,
-                    supportingText = error?.let { { Text(it) } },
                     visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
                 )
+                // Miuix 输入框没有 isError/supportingText，错误用下方文字说明（不只靠颜色）
+                error?.let {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = it,
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.error,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -201,6 +214,7 @@ private fun GateContent(
                         }
                     },
                     enabled = pin.length >= 4 && !checking,
+                    colors = ButtonDefaults.buttonColorsPrimary(),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(if (checking) "验证中…" else "解锁")

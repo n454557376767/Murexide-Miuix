@@ -27,6 +27,7 @@ import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +52,8 @@ internal fun FloatingTopBar(
     val liquidGlassBlur = LocalLiquidGlassBlur.current
     val controlSize = 48.dp
     val buttonShape = CircleShape
-    val topBarColor = MaterialTheme.colorScheme.surface
+    // 顶部渐变/毛玻璃的底色取 Miuix 的 surface 语义，跟随 Miuix 主题而不是 Material 配色
+    val topBarColor = MiuixTheme.colorScheme.surface
     val topBarStyle = HazeMaterials.thin().then {
         blurRadius(32.dp)
         noiseFactor(0f)

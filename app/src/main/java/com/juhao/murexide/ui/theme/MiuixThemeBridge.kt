@@ -6,6 +6,19 @@ import androidx.compose.ui.graphics.Color
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.ThemeController
 import top.yukonga.miuix.kmp.theme.darkColorScheme
+import top.yukonga.miuix.kmp.theme.lightColorScheme
+
+/**
+ * 页面画布（[top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme].background）的项目自定义底色。
+ *
+ * Miuix 非 Monet 的默认调色板里，浅色的 background 与 surfaceContainer 同为纯白、
+ * 深色的两者同为 #242424：页面底色和 Card / 分组行容器糊在一起，看不出层级。
+ * 这里显式覆盖页面画布——浅色压成浅灰（白色卡片浮起来），深色压成纯黑。
+ *
+ * 只改页面底色：surface / surfaceContainer 仍由 Miuix 决定，Card、顶栏、输入框的
+ * 容器角色不受影响。要换灰度只改这一个常量。
+ */
+private val MiuixLightBackground = Color(0xFFF2F2F2)
 
 /** 莫奈调色板模式：关闭 */
 const val MIUIX_MONET_OFF = "off"
@@ -77,8 +90,7 @@ internal fun rememberMiuixThemeController(
     return remember(mode, keyColor) {
         ThemeController(
             colorSchemeMode = mode,
-            // Miuix 默认深色的 background 与 surfaceContainer 同为 #242424，卡片会与背景糊在一起。
-            // 将页面底色压成纯黑，分组卡片/行容器才能与背景区分开。
+            lightColors = lightColorScheme(background = MiuixLightBackground),
             darkColors = darkColorScheme(background = Color.Black),
             keyColor = keyColor,
         )
