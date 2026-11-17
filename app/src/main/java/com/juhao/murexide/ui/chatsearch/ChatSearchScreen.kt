@@ -1,18 +1,20 @@
 package com.juhao.murexide.ui.chatsearch
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,13 +24,17 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.juhao.murexide.data.MessageItem
 import com.juhao.murexide.ui.components.Avatar
-import com.juhao.murexide.ui.icons.AppIcons
-import com.juhao.murexide.ui.icons.AutoMirroredIcon
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
+import com.juhao.murexide.ui.components.MiuixPageScaffold
+import com.juhao.murexide.ui.components.MiuixSearchField
 import com.juhao.murexide.utils.formatTimestamp
-
 import kotlinx.coroutines.flow.distinctUntilChanged
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatSearchScreen(
     chatName: String,
@@ -52,40 +58,25 @@ fun ChatSearchScreen(
             }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("搜索聊天记录") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        AutoMirroredIcon(AppIcons.ArrowBack, contentDescription = "返回")
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
-            OutlinedTextField(
+    MiuixPageScaffold(
+        title = "搜索聊天记录",
+        onBack = onBack
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            // Miuix 胶囊搜索框：常驻输入 + 一键清除
+            MiuixSearchField(
                 value = state.keyword,
                 onValueChange = viewModel::onKeywordChange,
+                placeholder = "搜索 ${chatName} 中的消息…",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text("搜索 $chatName 中的消息…") },
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                leadingIcon = {
-                    Icon(AppIcons.Search, contentDescription = null)
-                },
-                trailingIcon = {
-                    if (state.keyword.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.onKeywordChange("") }) {
-                            Icon(AppIcons.Close, contentDescription = "清除")
-                        }
-                    }
-                }
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             )
-    
+
             when {
                 state.isLoading -> CenterLoading()
                 state.error != null -> CenterError(state.error!!, viewModel::retry)
@@ -110,7 +101,7 @@ fun ChatSearchScreen(
                                         .padding(16.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    CircularProgressIndicator(Modifier.size(24.dp))
+                                    MiuixLoadingIndicator(size = 24.dp)
                                 }
                             }
                         }
@@ -126,36 +117,48 @@ private fun SearchResultItem(
     message: MessageItem,
     onClick: () -> Unit
 ) {
-    ListItem(
-        onClick = onClick,
-        leadingContent = {
-            Avatar(url = message.senderAvatar, size = 44.dp)
-        },
-        trailingContent = {
-            Text(
-                text = formatTimestamp(message.timestamp),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        colors = ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp)
+            .padding(bottom = 8.dp)
+            .clickable(onClick = onClick)
     ) {
-        Column {
-            Text(
-                text = message.senderName.ifBlank { "未知用户" },
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = previewText(message),
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Avatar(url = message.senderAvatar, size = 44.dp)
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = message.senderName.ifBlank { "未知用户" },
+                        style = MiuixTheme.textStyles.body1,
+                        fontWeight = FontWeight.Medium,
+                        color = MiuixTheme.colorScheme.onSurfaceContainer,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = formatTimestamp(message.timestamp),
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceContainerVariant
+                    )
+                }
+                Spacer(Modifier.size(2.dp))
+                Text(
+                    text = previewText(message),
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
@@ -174,15 +177,18 @@ private fun previewText(message: MessageItem): String = when (message.contentTyp
     else -> message.getDisplayContent()
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun CenterLoading() = Box(Modifier.fillMaxSize(), Alignment.Center) {
-    ContainedLoadingIndicator()
+    MiuixLoadingIndicator()
 }
 
 @Composable
 private fun CenterHint(text: String) = Box(Modifier.fillMaxSize(), Alignment.Center) {
-    Text(text, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(
+        text = text,
+        style = MiuixTheme.textStyles.body2,
+        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+    )
 }
 
 @Composable
@@ -191,6 +197,16 @@ private fun CenterError(message: String, retry: () -> Unit) = Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center
 ) {
-    Text(message, color = MaterialTheme.colorScheme.error)
-    TextButton(onClick = retry) { Text("重试") }
+    Text(
+        text = message,
+        style = MiuixTheme.textStyles.body2,
+        color = MiuixTheme.colorScheme.error
+    )
+    Spacer(Modifier.size(8.dp))
+    Button(
+        onClick = retry,
+        colors = ButtonDefaults.buttonColorsPrimary()
+    ) {
+        Text("重试")
+    }
 }

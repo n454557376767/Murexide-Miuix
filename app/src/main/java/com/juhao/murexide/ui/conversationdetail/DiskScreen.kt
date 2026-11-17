@@ -11,11 +11,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -27,11 +25,15 @@ import com.juhao.murexide.utils.FileDownloader
 import com.juhao.murexide.utils.QiniuUploader
 import com.juhao.murexide.utils.getFileIcon
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiskScreen(
     viewModel: DiskViewModel,
@@ -157,7 +159,7 @@ fun DiskScreen(
             when {
                 state.isLoading && state.files.isEmpty() -> Box(
                     Modifier.fillMaxSize().padding(padding), Alignment.Center
-                ) { CircularProgressIndicator() }
+                ) { MiuixLoadingIndicator() }
                 state.files.isEmpty() -> EmptyPlaceholder(
                     modifier = Modifier.fillMaxSize().padding(padding),
                     icon = AppIcons.Inbox,
@@ -189,78 +191,65 @@ fun DiskScreen(
                 }
             }
             if (uploading) {
-                LinearProgressIndicator(Modifier.fillMaxWidth())
+                MiuixIndeterminateLinearProgress(Modifier.fillMaxWidth())
             }
         }
     }
 
     if (showCreateDialog) {
         var name by remember { mutableStateOf("") }
-        AlertDialog(
-            onDismissRequest = { showCreateDialog = false },
-            title = { Text("新建文件夹") },
-            text = {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("名称") },
-                    singleLine = true
-                )
+        MiuixAlertDialog(
+            show = true,
+            title = "新建文件夹",
+            confirmText = "创建",
+            confirmEnabled = name.isNotBlank(),
+            onConfirm = {
+                viewModel.createFolder(name)
+                showCreateDialog = false
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (name.isNotBlank()) {
-                        viewModel.createFolder(name)
-                        showCreateDialog = false
-                    }
-                }) { Text("创建") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showCreateDialog = false }) { Text("取消") }
-            }
-        )
+            onDismissRequest = { showCreateDialog = false }
+        ) {
+            MiuixTextField(
+                value = name,
+                onValueChange = { name = it },
+                placeholder = "名称",
+                singleLine = true
+            )
+        }
     }
 
     renameTarget?.let { target ->
         var name by remember(target.id) { mutableStateOf(target.name) }
-        AlertDialog(
-            onDismissRequest = { renameTarget = null },
-            title = { Text("重命名") },
-            text = {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    singleLine = true
-                )
+        MiuixAlertDialog(
+            show = true,
+            title = "重命名",
+            confirmText = "确定",
+            confirmEnabled = name.isNotBlank(),
+            onConfirm = {
+                viewModel.rename(target, name)
+                renameTarget = null
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (name.isNotBlank()) {
-                        viewModel.rename(target, name)
-                        renameTarget = null
-                    }
-                }) { Text("确定") }
-            },
-            dismissButton = {
-                TextButton(onClick = { renameTarget = null }) { Text("取消") }
-            }
-        )
+            onDismissRequest = { renameTarget = null }
+        ) {
+            MiuixTextField(
+                value = name,
+                onValueChange = { name = it },
+                singleLine = true
+            )
+        }
     }
 
     deleteTarget?.let { target ->
-        AlertDialog(
-            onDismissRequest = { deleteTarget = null },
-            title = { Text("删除") },
-            text = { Text("确定删除「${target.name}」吗？") },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.remove(target)
-                    deleteTarget = null
-                }) { Text("删除", color = MaterialTheme.colorScheme.error) }
+        MiuixAlertDialog(
+            show = true,
+            title = "删除",
+            summary = "确定删除「${target.name}」吗？",
+            confirmText = "删除",
+            onConfirm = {
+                viewModel.remove(target)
+                deleteTarget = null
             },
-            dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) { Text("取消") }
-            }
+            onDismissRequest = { deleteTarget = null }
         )
     }
 }
@@ -280,11 +269,11 @@ private fun DiskBreadcrumb(
     ) {
         Text(
             text = "群云盘",
-            style = MaterialTheme.typography.bodySmall,
+            style = MiuixTheme.textStyles.footnote1,
             color = if (folderStack.isEmpty()) {
-                MaterialTheme.colorScheme.primary
+                MiuixTheme.colorScheme.primary
             } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
+                MiuixTheme.colorScheme.onSurfaceVariantSummary
             },
             modifier = Modifier
                 .clickable(enabled = folderStack.isNotEmpty()) { onRootClick() }
@@ -293,16 +282,16 @@ private fun DiskBreadcrumb(
         folderStack.forEachIndexed { index, (_, name) ->
             Text(
                 text = " / ",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
             Text(
                 text = name,
-                style = MaterialTheme.typography.bodySmall,
+                style = MiuixTheme.textStyles.footnote1,
                 color = if (index == folderStack.lastIndex) {
-                    MaterialTheme.colorScheme.primary
+                    MiuixTheme.colorScheme.primary
                 } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
+                    MiuixTheme.colorScheme.onSurfaceVariantSummary
                 },
                 modifier = Modifier
                     .clickable(enabled = index != folderStack.lastIndex) {
@@ -326,65 +315,84 @@ private fun DiskFileRow(
     onDelete: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    ListItem(
-        modifier = modifier,
-        onClick = onClick,
-        leadingContent = {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp)
+            .padding(bottom = 8.dp)
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(
                 imageVector = if (item.isFolder) AppIcons.Folder else getFileIcon(item.name),
-                contentDescription = null
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MiuixTheme.colorScheme.onSurfaceContainer
             )
-        },
-        trailingContent = {
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.name,
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = when {
+                        item.isFolder -> "文件夹"
+                        downloading -> "下载中 ${(downloadProgress * 100).toInt()}%"
+                        else -> "${formatSize(item.fileSize)} · ${formatTime(item.uploadTime)}"
+                    },
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant
+                )
+                if (downloading) {
+                    MiuixLinearProgress(
+                        progress = downloadProgress.coerceIn(0f, 1f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp)
+                    )
+                }
+            }
             if (canManage) {
                 Box {
                     IconButton(onClick = { expanded = true }) {
-                        Icon(AppIcons.MoreVert, contentDescription = "更多")
+                        Icon(
+                            imageVector = AppIcons.MoreVert,
+                            contentDescription = "更多",
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
+                        )
                     }
-                    ExpressiveDropdownMenu(
+                    MiuixPopupMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
                     ) {
-                        DropdownMenuItem(
-                            text = { Text("重命名") },
-                            leadingIcon = { Icon(AppIcons.Edit, contentDescription = null) },
-                            onClick = { expanded = false; onRename() }
+                        MiuixPopupMenuItem(
+                            text = "重命名",
+                            icon = AppIcons.Edit,
+                            onClick = {
+                                expanded = false
+                                onRename()
+                            }
                         )
-                        DropdownMenuItem(
-                            text = { Text("删除", color = MaterialTheme.colorScheme.error) },
-                            leadingIcon = {
-                                Icon(AppIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                            },
-                            onClick = { expanded = false; onDelete() }
+                        MiuixPopupMenuItem(
+                            text = "删除",
+                            icon = AppIcons.Delete,
+                            tint = MiuixTheme.colorScheme.error,
+                            onClick = {
+                                expanded = false
+                                onDelete()
+                            }
                         )
                     }
                 }
-            }
-        }
-    ) {
-        Column(Modifier.fillMaxWidth()) {
-            Text(
-                item.name,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = when {
-                    item.isFolder -> "文件夹"
-                    downloading -> "下载中 ${(downloadProgress * 100).toInt()}%"
-                    else -> "${formatSize(item.fileSize)} · ${formatTime(item.uploadTime)}"
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            if (downloading) {
-                LinearProgressIndicator(
-                    progress = { downloadProgress.coerceIn(0f, 1f) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp)
-                )
             }
         }
     }

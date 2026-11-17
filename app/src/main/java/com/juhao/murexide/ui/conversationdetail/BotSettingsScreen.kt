@@ -1,7 +1,6 @@
 package com.juhao.murexide.ui.conversationdetail
 
 import com.juhao.murexide.ui.icons.AppIcons
-import com.juhao.murexide.ui.icons.AutoMirroredIcon
 
 import android.content.ClipData
 import android.widget.Toast
@@ -11,27 +10,34 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.juhao.murexide.ui.components.Avatar
 import com.juhao.murexide.ui.components.CustomItemCell
+import com.juhao.murexide.ui.components.MiuixAlertDialog
+import com.juhao.murexide.ui.components.MiuixLinearProgress
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
+import com.juhao.murexide.ui.components.MiuixPageScaffold
+import com.juhao.murexide.ui.components.MiuixTextField
 import com.juhao.murexide.ui.components.SettingsGroupHeader
 import com.juhao.murexide.ui.components.SettingsGroupSurface
 import com.juhao.murexide.ui.components.SettingsItemCell
 import com.juhao.murexide.ui.components.SettingsSwitchItem
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BotSettingsScreen(
     viewModel: BotSettingsViewModel,
@@ -42,7 +48,6 @@ fun BotSettingsScreen(
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scrollState = rememberScrollState()
 
     val imagePicker = rememberLauncherForActivityResult(
@@ -61,50 +66,43 @@ fun BotSettingsScreen(
         }
     }
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            TopAppBar(
-                title = { Text("机器人设置") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        AutoMirroredIcon(AppIcons.ArrowBack, contentDescription = "返回")
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-                actions = {
-                    if (uiState.isSaving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .padding(end = 4.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else if (uiState.original != null) {
-                        IconButton(
-                            onClick = { viewModel.save() },
-                            enabled = !uiState.isUploadingAvatar
-                        ) {
-                            Icon(AppIcons.Check, contentDescription = "保存")
-                        }
-                    }
+    MiuixPageScaffold(
+        title = "机器人设置",
+        onBack = onBack,
+        actions = {
+            if (uiState.isSaving) {
+                Box(
+                    modifier = Modifier
+                        .padding(end = 12.dp)
+                        .size(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    MiuixLoadingIndicator(size = 20.dp, strokeWidth = 2.dp)
                 }
-            )
+            } else if (uiState.original != null) {
+                IconButton(
+                    onClick = { viewModel.save() },
+                    enabled = !uiState.isUploadingAvatar
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Check,
+                        contentDescription = "保存",
+                        tint = MiuixTheme.colorScheme.onBackground
+                    )
+                }
+            }
         }
     ) { padding ->
-        if (uiState.isLoading) {
-            Box(
+        val loadError = uiState.loadError
+        when {
+            uiState.isLoading -> Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
                 contentAlignment = Alignment.Center
-            ) { CircularProgressIndicator() }
-            return@Scaffold
-        }
+            ) { MiuixLoadingIndicator() }
 
-        val loadError = uiState.loadError
-        if (loadError != null) {
-            Column(
+            loadError != null -> Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
@@ -114,28 +112,29 @@ fun BotSettingsScreen(
             ) {
                 Text(
                     text = loadError,
-                    color = MaterialTheme.colorScheme.error,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.error,
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(12.dp))
-                Button(onClick = viewModel::load) { Text("重试") }
+                Button(
+                    onClick = viewModel::load,
+                    colors = ButtonDefaults.buttonColorsPrimary()
+                ) { Text("重试") }
             }
-            return@Scaffold
-        }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(scrollState)
-        ) {
-            Column(
+            else -> Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(scrollState)
             ) {
-                Box(contentAlignment = Alignment.Center) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Avatar(
                         url = uiState.avatarUrl,
                         size = 88.dp,
@@ -143,162 +142,174 @@ fun BotSettingsScreen(
                             imagePicker.launch("image/*")
                         }
                     )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = if (uiState.isUploadingAvatar) "上传中…" else "点击更换机器人头像",
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        textAlign = TextAlign.Center
+                    )
                     if (uiState.isUploadingAvatar) {
-                        CircularProgressIndicator(
-                            progress = { uiState.uploadProgress.coerceIn(0f, 1f) },
-                            modifier = Modifier.size(88.dp),
-                            strokeWidth = 3.dp
+                        MiuixLinearProgress(
+                            progress = uiState.uploadProgress.coerceIn(0f, 1f),
+                            modifier = Modifier
+                                .width(120.dp)
+                                .padding(top = 8.dp)
                         )
                     }
                 }
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = if (uiState.isUploadingAvatar) "上传中…" else "点击更换机器人头像",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-            }
 
-            SettingsGroupHeader("基本信息")
-            SettingsGroupSurface(isTop = true, isBottom = false) {
-                CustomItemCell {
-                    OutlinedTextField(
-                        value = uiState.name,
-                        onValueChange = viewModel::updateName,
-                        label = { Text("机器人名称") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-            SettingsGroupSurface(isTop = false, isBottom = false) {
-                CustomItemCell {
-                    OutlinedTextField(
-                        value = uiState.introduction,
-                        onValueChange = viewModel::updateIntroduction,
-                        label = { Text("机器人简介") },
-                        minLines = 2,
-                        maxLines = 5,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-            SettingsGroupSurface(isTop = false, isBottom = true) {
-                SettingsSwitchItem(
-                    icon = AppIcons.Lock,
-                    title = "私有机器人",
-                    subtitle = "开启后不在机器人商店展示",
-                    checked = uiState.isPrivate,
-                    onCheckedChange = viewModel::togglePrivate
-                )
-            }
-
-            SettingsGroupHeader("消息订阅")
-            SettingsGroupSurface(isTop = true, isBottom = false) {
-                CustomItemCell {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(
-                            selected = uiState.subscribeType == 0,
-                            onClick = { viewModel.updateSubscribeType(0) },
-                            label = { Text("URL 订阅") }
-                        )
-                        FilterChip(
-                            selected = uiState.subscribeType == 1,
-                            onClick = { viewModel.updateSubscribeType(1) },
-                            label = { Text("WSS 订阅") }
+                SettingsGroupHeader("基本信息")
+                SettingsGroupSurface(isTop = true, isBottom = false) {
+                    CustomItemCell {
+                        MiuixTextField(
+                            value = uiState.name,
+                            onValueChange = viewModel::updateName,
+                            placeholder = "机器人名称",
+                            singleLine = true
                         )
                     }
                 }
-            }
-            SettingsGroupSurface(isTop = false, isBottom = true) {
-                CustomItemCell {
-                    OutlinedTextField(
-                        value = uiState.link,
-                        onValueChange = viewModel::updateLink,
-                        label = { Text("订阅地址") },
-                        placeholder = {
-                            Text(if (uiState.subscribeType == 1) "wss://..." else "https://...")
-                        },
-                        supportingText = if (uiState.original?.linkStop == true) {
-                            { Text("当前订阅地址已被停用", color = MaterialTheme.colorScheme.error) }
-                        } else null,
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                SettingsGroupSurface(isTop = false, isBottom = false) {
+                    CustomItemCell {
+                        MiuixTextField(
+                            value = uiState.introduction,
+                            onValueChange = viewModel::updateIntroduction,
+                            placeholder = "机器人简介",
+                            singleLine = false,
+                            minHeight = 72
+                        )
+                    }
+                }
+                SettingsGroupSurface(isTop = false, isBottom = true) {
+                    SettingsSwitchItem(
+                        icon = AppIcons.Lock,
+                        title = "私有机器人",
+                        subtitle = "开启后不在机器人商店展示",
+                        checked = uiState.isPrivate,
+                        onCheckedChange = viewModel::togglePrivate
                     )
                 }
-            }
 
-            SettingsGroupHeader("机器人设置 JSON")
-            SettingsGroupSurface(isTop = true, isBottom = true) {
-                CustomItemCell {
-                    OutlinedTextField(
-                        value = uiState.settingJson,
-                        onValueChange = viewModel::updateSettingJson,
-                        label = { Text("settingJson") },
-                        placeholder = { Text("[]") },
-                        supportingText = { Text("群内机器人设置表单，需为 JSON 数组") },
-                        textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.Monospace),
-                        minLines = 3,
-                        maxLines = 10,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-
-            SettingsGroupHeader("Token")
-            SettingsGroupSurface(isTop = true, isBottom = false) {
-                SettingsItemCell(
-                    icon = AppIcons.Key,
-                    endIcon = if (uiState.tokenVisible) AppIcons.VisibilityOff else AppIcons.Visibility,
-                    title = if (uiState.tokenVisible) uiState.botToken else maskToken(uiState.botToken),
-                    subtitle = "点击显示 / 隐藏",
-                    onClick = viewModel::toggleTokenVisible
-                )
-            }
-            SettingsGroupSurface(isTop = false, isBottom = false) {
-                SettingsItemCell(
-                    icon = AppIcons.ContentCopy,
-                    title = "复制 Token",
-                    isEnabled = uiState.botToken.isNotEmpty(),
-                    onClick = {
-                        scope.launch {
-                            clipboard.setClipEntry(
-                                ClipEntry(ClipData.newPlainText("bot token", uiState.botToken))
-                            )
-                            Toast.makeText(context, "已复制", Toast.LENGTH_SHORT).show()
+                SettingsGroupHeader("消息订阅")
+                SettingsGroupSurface(isTop = true, isBottom = false) {
+                    CustomItemCell {
+                        // 原来的 FilterChip 换成 Miuix 按钮：选中态主色、未选中次级色
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = { viewModel.updateSubscribeType(0) },
+                                colors = if (uiState.subscribeType == 0) {
+                                    ButtonDefaults.buttonColorsPrimary()
+                                } else {
+                                    ButtonDefaults.buttonColors()
+                                }
+                            ) { Text("URL 订阅") }
+                            Button(
+                                onClick = { viewModel.updateSubscribeType(1) },
+                                colors = if (uiState.subscribeType == 1) {
+                                    ButtonDefaults.buttonColorsPrimary()
+                                } else {
+                                    ButtonDefaults.buttonColors()
+                                }
+                            ) { Text("WSS 订阅") }
                         }
                     }
-                )
-            }
-            SettingsGroupSurface(isTop = false, isBottom = true) {
-                SettingsItemCell(
-                    icon = AppIcons.Refresh,
-                    title = if (uiState.isResettingToken) "重置中…" else "重置 Token",
-                    subtitle = "旧 Token 将立即失效",
-                    isDestructive = true,
-                    isEnabled = !uiState.isResettingToken,
-                    onClick = { viewModel.showResetConfirm(true) }
-                )
-            }
+                }
+                SettingsGroupSurface(isTop = false, isBottom = true) {
+                    CustomItemCell {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            MiuixTextField(
+                                value = uiState.link,
+                                onValueChange = viewModel::updateLink,
+                                placeholder = if (uiState.subscribeType == 1) {
+                                    "订阅地址：wss://..."
+                                } else {
+                                    "订阅地址：https://..."
+                                },
+                                singleLine = true
+                            )
+                            if (uiState.original?.linkStop == true) {
+                                Text(
+                                    text = "当前订阅地址已被停用",
+                                    style = MiuixTheme.textStyles.footnote2,
+                                    color = MiuixTheme.colorScheme.error,
+                                    modifier = Modifier.padding(top = 6.dp)
+                                )
+                            }
+                        }
+                    }
+                }
 
-            Spacer(Modifier.height(24.dp))
+                SettingsGroupHeader("机器人设置 JSON")
+                SettingsGroupSurface(isTop = true, isBottom = true) {
+                    CustomItemCell {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            MiuixTextField(
+                                value = uiState.settingJson,
+                                onValueChange = viewModel::updateSettingJson,
+                                placeholder = "settingJson（[]）",
+                                singleLine = false,
+                                minHeight = 96
+                            )
+                            Text(
+                                text = "群内机器人设置表单，需为 JSON 数组",
+                                style = MiuixTheme.textStyles.footnote2,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                modifier = Modifier.padding(top = 6.dp)
+                            )
+                        }
+                    }
+                }
+
+                SettingsGroupHeader("Token")
+                SettingsGroupSurface(isTop = true, isBottom = false) {
+                    SettingsItemCell(
+                        icon = AppIcons.Key,
+                        endIcon = if (uiState.tokenVisible) AppIcons.VisibilityOff else AppIcons.Visibility,
+                        title = if (uiState.tokenVisible) uiState.botToken else maskToken(uiState.botToken),
+                        subtitle = "点击显示 / 隐藏",
+                        onClick = viewModel::toggleTokenVisible
+                    )
+                }
+                SettingsGroupSurface(isTop = false, isBottom = false) {
+                    SettingsItemCell(
+                        icon = AppIcons.ContentCopy,
+                        title = "复制 Token",
+                        isEnabled = uiState.botToken.isNotEmpty(),
+                        onClick = {
+                            scope.launch {
+                                clipboard.setClipEntry(
+                                    ClipEntry(ClipData.newPlainText("bot token", uiState.botToken))
+                                )
+                                Toast.makeText(context, "已复制", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    )
+                }
+                SettingsGroupSurface(isTop = false, isBottom = true) {
+                    SettingsItemCell(
+                        icon = AppIcons.Refresh,
+                        title = if (uiState.isResettingToken) "重置中…" else "重置 Token",
+                        subtitle = "旧 Token 将立即失效",
+                        isDestructive = true,
+                        isEnabled = !uiState.isResettingToken,
+                        onClick = { viewModel.showResetConfirm(true) }
+                    )
+                }
+
+                Spacer(Modifier.height(24.dp))
+            }
         }
     }
 
     if (uiState.showResetConfirm) {
-        AlertDialog(
-            onDismissRequest = { viewModel.showResetConfirm(false) },
-            title = { Text("重置 Token？") },
-            text = { Text("重置后旧 Token 会立即失效，使用旧 Token 的服务需要同步更新。") },
-            confirmButton = {
-                TextButton(onClick = viewModel::resetToken) {
-                    Text("重置", color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { viewModel.showResetConfirm(false) }) { Text("取消") }
-            }
+        MiuixAlertDialog(
+            show = true,
+            title = "重置 Token？",
+            summary = "重置后旧 Token 会立即失效，使用旧 Token 的服务需要同步更新。",
+            confirmText = "重置",
+            onConfirm = viewModel::resetToken,
+            onDismissRequest = { viewModel.showResetConfirm(false) }
         )
     }
 }

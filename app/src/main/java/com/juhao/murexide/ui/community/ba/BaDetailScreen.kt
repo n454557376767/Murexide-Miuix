@@ -11,12 +11,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -35,8 +37,14 @@ import com.juhao.murexide.ui.components.MiuixPageScaffold
 import com.juhao.murexide.ui.icons.AppIcons
 import com.juhao.murexide.ui.icons.AutoMirroredIcon
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BaDetailScreen(
     onBackClick: () -> Unit,
@@ -126,39 +134,40 @@ fun BaDetailScreen(
                         enter = fadeIn() + scaleIn(initialScale = 0.85f),
                         exit = fadeOut() + scaleOut(targetScale = 0.85f)
                     ) {
-                        Surface(
-                            onClick = { scope.launch { listState.animateScrollToItem(0) } },
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            shadowElevation = 4.dp,
-                            modifier = Modifier.size(44.dp)
+                        // Miuix 风格的圆形浮动按钮：shadow + clip + 语义色，不依赖 Material Surface
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .shadow(4.dp, CircleShape)
+                                .clip(CircleShape)
+                                .background(MiuixTheme.colorScheme.surfaceContainerHigh)
+                                .clickable { scope.launch { listState.animateScrollToItem(0) } },
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = AppIcons.ArrowUpward,
-                                    contentDescription = "回到顶部",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
+                            Icon(
+                                imageVector = AppIcons.ArrowUpward,
+                                contentDescription = "回到顶部",
+                                tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                modifier = Modifier.size(22.dp)
+                            )
                         }
                     }
 
                     ba?.let { b ->
-                        Surface(
-                            onClick = { CreatePostActivity.startCreate(context, b.id, b.name) },
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primary,
-                            shadowElevation = 8.dp,
-                            modifier = Modifier.size(56.dp)
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .shadow(8.dp, CircleShape)
+                                .clip(CircleShape)
+                                .background(MiuixTheme.colorScheme.primary)
+                                .clickable { CreatePostActivity.startCreate(context, b.id, b.name) },
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = AppIcons.Edit,
-                                    contentDescription = "发帖",
-                                    tint = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
+                            Icon(
+                                imageVector = AppIcons.Edit,
+                                contentDescription = "发帖",
+                                tint = MiuixTheme.colorScheme.onPrimary
+                            )
                         }
                     }
                 }
@@ -172,7 +181,7 @@ fun BaDetailScreen(
                             .padding(top = padding.calculateTopPadding()),
                         contentAlignment = Alignment.Center
                     ) {
-                        ContainedLoadingIndicator()
+                        MiuixLoadingIndicator()
                     }
                 }
 
@@ -184,8 +193,9 @@ fun BaDetailScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            uiState.error ?: "加载失败",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = uiState.error ?: "加载失败",
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                         )
                     }
                 }
@@ -217,8 +227,9 @@ fun BaDetailScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        "暂无文章",
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        text = "暂无文章",
+                                        style = MiuixTheme.textStyles.body2,
+                                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                     )
                                 }
                             }
@@ -239,7 +250,7 @@ fun BaDetailScreen(
                                     Modifier.fillMaxWidth().padding(16.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    ContainedLoadingIndicator(modifier = Modifier.size(28.dp))
+                                    MiuixLoadingIndicator(size = 28.dp)
                                 }
                             }
                         }
@@ -293,7 +304,7 @@ fun BaDetailScreen(
                 fontSize = fontSize,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = MiuixTheme.colorScheme.onBackground,
                 modifier = Modifier
                     .offset(
                         x = with(density) { titleRect.left.toDp() },
@@ -353,30 +364,24 @@ private fun BaHeader(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "${ba.memberNum} 关注 · ${ba.postNum} 文章 · ${ba.groupNum} 群聊",
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "${ba.memberNum} 关注 · ${ba.postNum} 文章 · ${ba.groupNum} 群聊",
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
         }
 
         Spacer(Modifier.height(14.dp))
 
+        // 已关注用次级按钮、未关注用主色按钮，两侧都走 Miuix 按钮语义
         val isFollowed = ba.isFollowed == "1"
-        if (isFollowed) {
-            OutlinedButton(
-                onClick = onFollowClick,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("已关注")
-            }
-        } else {
-            Button(
-                onClick = onFollowClick,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("关注")
-            }
+        Button(
+            onClick = onFollowClick,
+            colors = if (isFollowed) ButtonDefaults.buttonColors()
+            else ButtonDefaults.buttonColorsPrimary(),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(if (isFollowed) "已关注" else "关注")
         }
     }
 }

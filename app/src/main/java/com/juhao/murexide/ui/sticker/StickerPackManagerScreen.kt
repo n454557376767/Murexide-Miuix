@@ -10,11 +10,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -33,9 +34,16 @@ import com.juhao.murexide.datastore.AccountStorage
 import com.juhao.murexide.ui.icons.AppIcons
 import com.juhao.murexide.ui.components.*
 import kotlinx.coroutines.isActive
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun StickerPackManagerScreen(
     viewModel: StickerPackManagerViewModel,
@@ -140,7 +148,7 @@ fun StickerPackManagerScreen(
                 Icon(AppIcons.Add, contentDescription = "新建表情包")
             }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { MiuixSnackbarHost(hostState = snackbarHostState) }
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
             when {
@@ -149,7 +157,7 @@ fun StickerPackManagerScreen(
                         Modifier.fillMaxSize().padding(innerPadding),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator()
+                        MiuixLoadingIndicator()
                     }
                 }
 
@@ -159,7 +167,10 @@ fun StickerPackManagerScreen(
                     title = "加载失败",
                     subtitle = state.error,
                     primaryButton = {
-                        Button(onClick = { viewModel.load() }) { Text("重试") }
+                        Button(
+                            onClick = { viewModel.load() },
+                            colors = ButtonDefaults.buttonColorsPrimary()
+                        ) { Text("重试") }
                     }
                 )
 
@@ -277,52 +288,38 @@ fun StickerPackManagerScreen(
 
     if (showCreateDialog) {
         var newName by remember { mutableStateOf("") }
-        AlertDialog(
-            onDismissRequest = { showCreateDialog = false },
-            title = { Text("新建表情包") },
-            text = {
-                OutlinedTextField(
-                    value = newName,
-                    onValueChange = { newName = it },
-                    label = { Text("表情包名称") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.createPack(newName) {
-                            showCreateDialog = false
-                        }
-                    },
-                    enabled = newName.isNotBlank() && !state.isSubmitting
-                ) {
-                    Text("创建")
+        MiuixAlertDialog(
+            show = true,
+            title = "新建表情包",
+            confirmText = "创建",
+            confirmEnabled = newName.isNotBlank() && !state.isSubmitting,
+            onConfirm = {
+                viewModel.createPack(newName) {
+                    showCreateDialog = false
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showCreateDialog = false }) { Text("取消") }
-            }
-        )
+            onDismissRequest = { showCreateDialog = false }
+        ) {
+            MiuixTextField(
+                value = newName,
+                onValueChange = { newName = it },
+                placeholder = "表情包名称",
+                singleLine = true
+            )
+        }
     }
 
     packToRemove?.let { pack ->
-        AlertDialog(
-            onDismissRequest = { packToRemove = null },
-            title = { Text("移除表情包") },
-            text = { Text("确定要从收藏中移除「${pack.name}」吗？") },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.removePack(pack.id)
-                    packToRemove = null
-                }) {
-                    Text("移除", color = MaterialTheme.colorScheme.error)
-                }
+        MiuixAlertDialog(
+            show = true,
+            title = "移除表情包",
+            summary = "确定要从收藏中移除「${pack.name}」吗？",
+            confirmText = "移除",
+            onConfirm = {
+                viewModel.removePack(pack.id)
+                packToRemove = null
             },
-            dismissButton = {
-                TextButton(onClick = { packToRemove = null }) { Text("取消") }
-            }
+            onDismissRequest = { packToRemove = null }
         )
     }
 }
@@ -352,18 +349,14 @@ private fun StickerPackRow(
             .build()
     }
 
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = if (isDragging) {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        } else {
-            MaterialTheme.colorScheme.surface
-        },
-        tonalElevation = if (isDragging) 8.dp else 0.dp,
-        shadowElevation = if (isDragging) 8.dp else 0.dp,
+    // Miuix 卡片行：Card 自带 surfaceContainer 容器与 HyperOS 圆角；
+    // 拖拽时的强调只在需要时叠一层阴影，颜色仍走同一套语义 token
+    Card(
         modifier = modifier
             .fillMaxWidth()
+            .padding(horizontal = 12.dp)
             .graphicsLayer { translationY = dragOffsetY }
+            .then(if (isDragging) Modifier.shadow(8.dp, RoundedCornerShape(12.dp)) else Modifier)
             .then(
                 if (interactive) Modifier.combinedClickable(onClick = onClick)
                 else Modifier
@@ -379,7 +372,7 @@ private fun StickerPackRow(
                 modifier = Modifier
                     .size(52.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    .background(MiuixTheme.colorScheme.surfaceContainerHigh),
                 contentAlignment = Alignment.Center
             ) {
                 if (coverUrl != null) {
@@ -394,7 +387,7 @@ private fun StickerPackRow(
                         imageVector = AppIcons.Mood,
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MiuixTheme.colorScheme.onSurfaceContainerVariant
                     )
                 }
             }
@@ -404,15 +397,16 @@ private fun StickerPackRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = pack.name,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MiuixTheme.textStyles.body1,
                     fontWeight = FontWeight.Bold,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "${pack.stickerItems.size} 个表情",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                 )
             }
 
@@ -422,7 +416,7 @@ private fun StickerPackRow(
                         imageVector = AppIcons.Delete,
                         contentDescription = "移除",
                         modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.error
+                        tint = MiuixTheme.colorScheme.error
                     )
                 }
             } else {
@@ -434,7 +428,7 @@ private fun StickerPackRow(
                         imageVector = AppIcons.Delete,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.error
+                        tint = MiuixTheme.colorScheme.error
                     )
                 }
             }
@@ -443,7 +437,7 @@ private fun StickerPackRow(
                 imageVector = AppIcons.KeyboardArrowRight,
                 contentDescription = null,
                 modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MiuixTheme.colorScheme.onSurfaceVariantActions
             )
         }
     }

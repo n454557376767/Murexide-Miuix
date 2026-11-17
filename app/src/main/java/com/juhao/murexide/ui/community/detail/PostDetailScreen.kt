@@ -15,24 +15,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.juhao.murexide.data.*
 import com.juhao.murexide.datastore.AccountStorage
 import com.juhao.murexide.repository.ConversationRepository
@@ -59,9 +54,16 @@ import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
-import com.kyant.backdrop.backdrops.emptyBackdrop
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PostDetailScreen(
     onBackClick: () -> Unit,
@@ -103,9 +105,9 @@ fun PostDetailScreen(
     val liquidGlassEnabled = LocalLiquidGlassEnabled.current
     val themeColor by UiState.themeColor
     val topBarBackgroundColor = if (themeColor == "WHITE") {
-        MaterialTheme.colorScheme.surfaceContainer
+        MiuixTheme.colorScheme.surfaceContainer
     } else {
-        MaterialTheme.colorScheme.surface
+        MiuixTheme.colorScheme.surface
     }
     val liquidBackdrop = if (liquidGlassEnabled) {
         rememberLayerBackdrop {
@@ -116,31 +118,18 @@ fun PostDetailScreen(
         null
     }
 
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("确认删除") },
-            text = { Text("确定要删除此文章吗？此操作不可撤销。") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deletePost()
-                        showDeleteDialog = false
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("删除")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("取消")
-                }
-            }
-        )
-    }
+    // Miuix 对话框：WindowDialog 承载，不依赖页面 Scaffold 宿主
+    MiuixAlertDialog(
+        show = showDeleteDialog,
+        title = "确认删除",
+        summary = "确定要删除此文章吗？此操作不可撤销。",
+        confirmText = "删除",
+        onConfirm = {
+            viewModel.deletePost()
+            showDeleteDialog = false
+        },
+        onDismissRequest = { showDeleteDialog = false }
+    )
     
     if (showShareSheet) {
         PostShareSheet(
@@ -166,7 +155,6 @@ fun PostDetailScreen(
                 showInputSheet = false
                 replyToComment = null
             },
-            liquidGlassEnabled = liquidGlassEnabled,
             onSend = { text ->
                 val parentId = replyToComment?.id ?: 0
                 viewModel.submitComment(text, commentId = parentId) { success ->
@@ -201,16 +189,16 @@ fun PostDetailScreen(
                     uiState.post?.let { post ->
                         Column {
                             Text(
-                                post.senderNickname,
-                                style = MaterialTheme.typography.bodyLarge,
+                                text = post.senderNickname,
+                                style = MiuixTheme.textStyles.body1,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                post.createTimeText,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                text = post.createTimeText,
+                                style = MiuixTheme.textStyles.footnote2,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                 maxLines = 1
                             )
                         }
@@ -229,62 +217,51 @@ fun PostDetailScreen(
                 },
                 actions = {
                     Box {
-                        ExpressiveDropdownMenu(
+                        MiuixPopupMenu(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false }
                         ) {
-                            DropdownMenuItem(
-                                text = { Text("复制原文") },
+                            MiuixPopupMenuItem(
+                                text = "复制原文",
+                                icon = AppIcons.ContentCopy,
                                 onClick = {
                                     showMenu = false
                                     val content = uiState.post?.content ?: ""
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                     clipboard.setPrimaryClip(ClipData.newPlainText("post", content))
                                     Toast.makeText(context, "已复制", Toast.LENGTH_SHORT).show()
-                                },
-                                leadingIcon = {
-                                    Icon(AppIcons.ContentCopy, contentDescription = null)
                                 }
                             )
-                            DropdownMenuItem(
-                                text = { Text("分享") },
+                            MiuixPopupMenuItem(
+                                text = "分享",
+                                icon = AppIcons.Share,
                                 onClick = {
                                     showMenu = false
                                     showShareSheet = true
-                                },
-                                leadingIcon = {
-                                    Icon(AppIcons.Share, contentDescription = null)
                                 }
                             )
                             if (uiState.isManageEnabled) {
-                                DropdownMenuItem(
-                                    text = { Text("编辑文章") },
+                                MiuixPopupMenuItem(
+                                    text = "编辑文章",
+                                    icon = AppIcons.Edit,
                                     onClick = {
                                         showMenu = false
                                         CreatePostActivity.startEdit(
                                             context = context,
                                             content = uiState.post?.content ?: "",
                                             contentType = uiState.post?.contentType ?: 1,
-                                            postId = uiState.post?.id ?: return@DropdownMenuItem,
+                                            postId = uiState.post?.id ?: return@MiuixPopupMenuItem,
                                             title = uiState.post?.title ?: ""
                                         )
-                                    },
-                                    leadingIcon = {
-                                        Icon(AppIcons.Edit, contentDescription = null)
                                     }
                                 )
-                                DropdownMenuItem(
-                                    text = { Text("删除文章", color = MaterialTheme.colorScheme.error) },
+                                MiuixPopupMenuItem(
+                                    text = "删除文章",
+                                    icon = AppIcons.Delete,
+                                    tint = MiuixTheme.colorScheme.error,
                                     onClick = {
                                         showMenu = false
                                         showDeleteDialog = true
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            AppIcons.Delete,
-                                            tint = MaterialTheme.colorScheme.error,
-                                            contentDescription = null
-                                        )
                                     }
                                 )
                             }
@@ -340,7 +317,7 @@ fun PostDetailScreen(
                             .padding(innerPadding),
                         contentAlignment = Alignment.Center
                     ) {
-                        ContainedLoadingIndicator()
+                        MiuixLoadingIndicator()
                     }
                 }
 
@@ -352,8 +329,9 @@ fun PostDetailScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            uiState.error ?: "加载失败",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = uiState.error ?: "加载失败",
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                         )
                     }
                 }
@@ -372,8 +350,8 @@ fun PostDetailScreen(
                             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                             Text(
                                 text = "评论",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
+                                style = MiuixTheme.textStyles.title4,
+                                color = MiuixTheme.colorScheme.onBackground,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             )
                         }
@@ -386,7 +364,11 @@ fun PostDetailScreen(
                                         .padding(32.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("暂无评论", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(
+                                        text = "暂无评论",
+                                        style = MiuixTheme.textStyles.body2,
+                                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                                    )
                                 }
                             }
                         }
@@ -409,9 +391,7 @@ fun PostDetailScreen(
                                         .padding(16.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    ContainedLoadingIndicator(
-                                        modifier = Modifier.size(28.dp)
-                                    )
+                                    MiuixLoadingIndicator(size = 28.dp)
                                 }
                             }
                         }
@@ -441,7 +421,7 @@ private fun CommentBottomBar(
     val liquidGlassBlur = LocalLiquidGlassBlur.current
     val controlSize = 48.dp
     val buttonShape = CircleShape
-    val barColor = MaterialTheme.colorScheme.surfaceContainer
+    val barColor = MiuixTheme.colorScheme.surfaceContainer
     val barStyle = HazeMaterials.thin().then {
         blurRadius(32.dp)
         noiseFactor(0f)
@@ -493,13 +473,13 @@ private fun CommentBottomBar(
                 Icon(
                     AppIcons.Edit,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     modifier = Modifier.size(18.dp)
                 )
                 Text(
-                    "说点什么…",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "说点什么…",
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
 
@@ -512,23 +492,23 @@ private fun CommentBottomBar(
                 BottomBarAction(
                     icon = if (isLiked) AppIcons.Favorite else AppIcons.FavoriteBorder,
                     count = likeCount,
-                    tint = if (isLiked) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (isLiked) MiuixTheme.colorScheme.error
+                    else MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     enabled = enabled,
                     onClick = onLikeClick
                 )
                 BottomBarAction(
                     icon = AppIcons.ChatBubble,
                     count = commentCount,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     enabled = enabled,
                     onClick = onCommentClick
                 )
                 BottomBarAction(
                     icon = if (isCollected) AppIcons.Bookmark else AppIcons.BookmarkBorder,
                     count = collectCount,
-                    tint = if (isCollected) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (isCollected) MiuixTheme.colorScheme.primary
+                    else MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     enabled = enabled,
                     onClick = onCollectClick
                 )
@@ -561,31 +541,23 @@ private fun BottomBarAction(
         )
         Text(
             text = count.toString(),
-            style = MaterialTheme.typography.bodySmall,
+            style = MiuixTheme.textStyles.footnote2,
             color = tint,
             maxLines = 1
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CommentInputSheet(
     replyTo: CommentItem?,
     onDismiss: () -> Unit,
-    liquidGlassEnabled: Boolean,
     onSend: (String) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var text by remember { mutableStateOf("") }
     val canSend = text.isNotBlank()
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        dragHandle = null
-    ) {
+    MiuixBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -596,45 +568,32 @@ private fun CommentInputSheet(
             if (replyTo != null) {
                 Text(
                     text = "回复 @${replyTo.senderNickname}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp)
                 )
             }
 
-            BasicTextField(
+            // 多行输入：用应用自有的 Miuix 输入框（secondaryContainer 容器 + Miuix 文字/光标语义色）
+            MiuixTextField(
                 value = text,
                 onValueChange = { text = it },
+                placeholder = if (replyTo != null) "回复 @${replyTo.senderNickname}…" else "说点什么…",
+                singleLine = false,
+                minHeight = 120,
                 modifier = Modifier
-                    .fillMaxWidth()
                     .heightIn(min = 120.dp, max = 260.dp)
-                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.onSurface
-                ),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                decorationBox = { inner ->
-                    Box {
-                        if (text.isEmpty()) {
-                            Text(
-                                if (replyTo != null) "回复 @${replyTo.senderNickname}…" else "说点什么…",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        inner()
-                    }
-                }
+                    .padding(top = 12.dp, bottom = 16.dp)
             )
 
-            StyledButton(
+            Button(
                 onClick = {
                     if (canSend) {
                         onSend(text.trim())
                     }
                 },
-                backdrop = if (liquidGlassEnabled) emptyBackdrop() else null,
                 enabled = canSend,
+                colors = ButtonDefaults.buttonColorsPrimary(),
                 modifier = Modifier
                     .align(Alignment.End)
                     .padding(8.dp)
@@ -650,7 +609,11 @@ private fun PostHeader(post: PostDetail, ba: BaDetail?, viewModel: PostDetailVie
     Column(modifier = Modifier
         .fillMaxWidth()
         .padding(16.dp)) {
-        Text(post.title, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        Text(
+            text = post.title,
+            style = MiuixTheme.textStyles.title2,
+            color = MiuixTheme.colorScheme.onBackground
+        )
 
         Spacer(Modifier.height(12.dp))
 
@@ -658,7 +621,7 @@ private fun PostHeader(post: PostDetail, ba: BaDetail?, viewModel: PostDetailVie
             MarkdownText(markdown = post.content, modifier = Modifier.fillMaxWidth())
         } else {
             SelectionContainer {
-                Text(post.content, style = MaterialTheme.typography.bodyMedium)
+                Text(text = post.content, style = MiuixTheme.textStyles.body2)
             }
         }
 
@@ -677,13 +640,11 @@ private fun PostHeader(post: PostDetail, ba: BaDetail?, viewModel: PostDetailVie
 @Composable
 private fun BaCard(ba: BaDetail) {
     val context = LocalContext.current
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        onClick = {
-            BaDetailActivity.start(context, ba.id)
-        },
-        color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
-        modifier = Modifier.fillMaxWidth()
+    // Miuix 分组卡片：Card 自带 surfaceContainer 容器与圆角，不再手工拼 Surface + 阴影色
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { BaDetailActivity.start(context, ba.id) }
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -692,17 +653,22 @@ private fun BaCard(ba: BaDetail) {
             Avatar(url = ba.avatar, size = 36.dp)
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(ba.name, fontWeight = FontWeight.Medium, fontSize = 14.sp)
                 Text(
-                    "${ba.memberNum} 关注 · ${ba.postNum} 文章",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = ba.name,
+                    style = MiuixTheme.textStyles.body2,
+                    fontWeight = FontWeight.Medium,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer
+                )
+                Text(
+                    text = "${ba.memberNum} 关注 · ${ba.postNum} 文章",
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                 )
             }
             Icon(
                 AppIcons.ChevronRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MiuixTheme.colorScheme.onSurfaceVariantActions
             )
         }
     }
@@ -711,9 +677,7 @@ private fun BaCard(ba: BaDetail) {
 @Composable
 private fun GroupCard(group: GroupInfo) {
     val context = LocalContext.current
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
@@ -733,17 +697,22 @@ private fun GroupCard(group: GroupInfo) {
             Avatar(url = group.avatarUrl, size = 36.dp)
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(group.name, fontWeight = FontWeight.Medium, fontSize = 14.sp)
                 Text(
-                    "${group.headcount} 人",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = group.name,
+                    style = MiuixTheme.textStyles.body2,
+                    fontWeight = FontWeight.Medium,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer
+                )
+                Text(
+                    text = "${group.headcount} 人",
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                 )
             }
             Icon(
                 AppIcons.ChevronRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MiuixTheme.colorScheme.onSurfaceVariantActions
             )
         }
     }
@@ -772,45 +741,47 @@ private fun CommentRow(
                 Text(
                     text = comment.senderNickname,
                     style = if (isNested) {
-                        MaterialTheme.typography.labelMedium
+                        MiuixTheme.textStyles.footnote1
                     } else {
-                        MaterialTheme.typography.bodyMedium
+                        MiuixTheme.textStyles.body2
                     },
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = comment.createTimeText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = comment.content,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onBackground
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "回复",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.primary,
                     modifier = Modifier.clickable(onClick = onReplyClick)
                 )
             }
             if (comment.likeNum > 0) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        if (comment.isLiked == "1") AppIcons.Favorite else AppIcons.FavoriteBorder,
+                        imageVector = if (comment.isLiked == "1") AppIcons.Favorite else AppIcons.FavoriteBorder,
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
-                        tint = if (comment.isLiked == "1") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (comment.isLiked == "1") MiuixTheme.colorScheme.error
+                        else MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
-                        comment.likeNum.toString(),
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = comment.likeNum.toString(),
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
             }
@@ -828,7 +799,6 @@ private fun CommentRow(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PostShareSheet(
     isSharing: Boolean,
@@ -871,9 +841,9 @@ private fun PostShareSheet(
         }
     }
 
-    ModalBottomSheet(
+    MiuixBottomSheet(
         onDismissRequest = { if (!isSharing) onDismiss() },
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+        skipPartiallyExpanded = false
     ) {
         Column(
             modifier = Modifier
@@ -883,20 +853,17 @@ private fun PostShareSheet(
                 .padding(horizontal = 16.dp)
         ) {
             Text(
-                "分享到会话",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
+                text = "分享到会话",
+                style = MiuixTheme.textStyles.title4,
+                color = MiuixTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
-            OutlinedTextField(
+            MiuixSearchField(
                 value = query,
                 onValueChange = { query = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                leadingIcon = { Icon(AppIcons.Search, null) },
-                placeholder = { Text("搜索会话") },
-                shape = RoundedCornerShape(18.dp)
+                placeholder = "搜索会话",
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(8.dp))
@@ -907,7 +874,7 @@ private fun PostShareSheet(
                         .fillMaxWidth()
                         .height(200.dp),
                     contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
+                ) { MiuixLoadingIndicator() }
 
                 filtered.isEmpty() -> Box(
                     Modifier
@@ -916,8 +883,9 @@ private fun PostShareSheet(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        if (query.isBlank()) "暂无可分享的会话" else "未找到相关会话",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = if (query.isBlank()) "暂无可分享的会话" else "未找到相关会话",
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
 
@@ -934,7 +902,7 @@ private fun PostShareSheet(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(
-                                    if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                                    if (selected) MiuixTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
                                     else Color.Transparent
                                 )
                                 .clickable(enabled = !isSharing) {
@@ -950,22 +918,30 @@ private fun PostShareSheet(
                         ) {
                             Avatar(url = target.avatarUrl, size = 44.dp)
                             Text(
-                                target.displayName,
-                                style = MaterialTheme.typography.bodyLarge,
+                                text = target.displayName,
+                                style = MiuixTheme.textStyles.body1,
+                                color = MiuixTheme.colorScheme.onBackground,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f)
                             )
-                            Surface(
-                                modifier = Modifier.size(22.dp),
-                                shape = CircleShape,
-                                color = if (selected) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.surfaceContainerHigh,
-                                contentColor = if (selected) MaterialTheme.colorScheme.onPrimary
-                                else MaterialTheme.colorScheme.onSurfaceVariant
+                            Box(
+                                modifier = Modifier
+                                    .size(22.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (selected) MiuixTheme.colorScheme.primary
+                                        else MiuixTheme.colorScheme.surfaceContainerHigh
+                                    ),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    if (selected) Icon(AppIcons.Check, "已选择", Modifier.size(15.dp))
+                                if (selected) {
+                                    Icon(
+                                        imageVector = AppIcons.Check,
+                                        contentDescription = "已选择",
+                                        modifier = Modifier.size(15.dp),
+                                        tint = MiuixTheme.colorScheme.onPrimary
+                                    )
                                 }
                             }
                         }
@@ -979,9 +955,10 @@ private fun PostShareSheet(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedButton(
+                Button(
                     onClick = onDismiss,
                     enabled = !isSharing,
+                    colors = ButtonDefaults.buttonColors(),
                     modifier = Modifier.weight(1f)
                 ) { Text("取消") }
                 Button(
@@ -990,13 +967,14 @@ private fun PostShareSheet(
                         if (selected.isNotEmpty()) onShare(selected)
                     },
                     enabled = selectedIds.isNotEmpty() && !isSharing,
+                    colors = ButtonDefaults.buttonColorsPrimary(),
                     modifier = Modifier.weight(1f)
                 ) {
                     if (isSharing) {
-                        CircularProgressIndicator(
-                            Modifier.size(18.dp),
+                        MiuixLoadingIndicator(
+                            modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MiuixTheme.colorScheme.onPrimary
                         )
                     } else {
                         Text("分享")

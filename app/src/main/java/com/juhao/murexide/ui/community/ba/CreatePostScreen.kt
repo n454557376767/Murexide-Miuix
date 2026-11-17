@@ -4,29 +4,31 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.juhao.murexide.ui.components.*
 import com.juhao.murexide.ui.icons.AppIcons
 import com.juhao.murexide.utils.QiniuUploader
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
     baName: String,
@@ -134,65 +136,85 @@ fun CreatePostScreen(
                 Icon(AppIcons.Close, contentDescription = "关闭")
             }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { MiuixSnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-            BottomAppBar(
-                actions = {
-                    if (uiState.contentType == 2) {
-                        FilledTonalIconButton(onClick = { isPreviewMode = !isPreviewMode }) {
-                            Icon(
-                                imageVector = if (isPreviewMode) AppIcons.Edit else AppIcons.Visibility,
-                                contentDescription = if (isPreviewMode) "编辑" else "预览"
-                            )
-                        }
-
-                        if (!isPreviewMode) {
-                            IconButton(onClick = { insertAtCursor("# ") }) {
-                                Icon(AppIcons.Tag, contentDescription = "标题")
-                            }
-                            IconButton(onClick = { insertAtCursor("**粗体**") }) {
-                                Icon(AppIcons.FormatBold, contentDescription = "粗体")
-                            }
-                            IconButton(onClick = { insertAtCursor("[]()") }) {
-                                Icon(AppIcons.Link, contentDescription = "链接")
-                            }
-                            IconButton(
-                                onClick = {
-                                    imagePicker.launch(
-                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                    )
-                                },
-                                enabled = !uploading
-                            ) {
-                                if (uploading) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(18.dp),
-                                        strokeWidth = 2.dp
-                                    )
-                                } else {
-                                    Icon(AppIcons.Image, contentDescription = "插入图片")
-                                }
-                            }
-                        }
+            // 原来的 BottomAppBar + FloatingActionButton 换成 Miuix 行内操作条 + 主色发布按钮
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (uiState.contentType == 2) {
+                    IconButton(onClick = { isPreviewMode = !isPreviewMode }) {
+                        Icon(
+                            imageVector = if (isPreviewMode) AppIcons.Edit else AppIcons.Visibility,
+                            contentDescription = if (isPreviewMode) "编辑" else "预览",
+                            tint = MiuixTheme.colorScheme.onBackground
+                        )
                     }
-                },
-                floatingActionButton = {
-                    FloatingActionButton(
-                        onClick = { if (!uiState.isPublishing) viewModel.publish() },
-                        containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
-                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-                    ) {
-                        if (uiState.isPublishing) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp
+                    if (!isPreviewMode) {
+                        IconButton(onClick = { insertAtCursor("# ") }) {
+                            Icon(
+                                imageVector = AppIcons.Tag,
+                                contentDescription = "标题",
+                                tint = MiuixTheme.colorScheme.onBackground
                             )
-                        } else {
-                            Icon(AppIcons.Check, contentDescription = "发布")
+                        }
+                        IconButton(onClick = { insertAtCursor("**粗体**") }) {
+                            Icon(
+                                imageVector = AppIcons.FormatBold,
+                                contentDescription = "粗体",
+                                tint = MiuixTheme.colorScheme.onBackground
+                            )
+                        }
+                        IconButton(onClick = { insertAtCursor("[]()") }) {
+                            Icon(
+                                imageVector = AppIcons.Link,
+                                contentDescription = "链接",
+                                tint = MiuixTheme.colorScheme.onBackground
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                imagePicker.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            },
+                            enabled = !uploading
+                        ) {
+                            if (uploading) {
+                                MiuixLoadingIndicator(size = 18.dp, strokeWidth = 2.dp)
+                            } else {
+                                Icon(
+                                    imageVector = AppIcons.Image,
+                                    contentDescription = "插入图片",
+                                    tint = MiuixTheme.colorScheme.onBackground
+                                )
+                            }
                         }
                     }
                 }
-            )
+
+                Spacer(Modifier.weight(1f))
+
+                Button(
+                    onClick = { if (!uiState.isPublishing) viewModel.publish() },
+                    enabled = !uiState.isPublishing,
+                    colors = ButtonDefaults.buttonColorsPrimary()
+                ) {
+                    if (uiState.isPublishing) {
+                        MiuixLoadingIndicator(
+                            size = 18.dp,
+                            strokeWidth = 2.dp,
+                            color = MiuixTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text("发布")
+                    }
+                }
+            }
         }
     ) { innerPadding ->
         Column(
@@ -202,48 +224,55 @@ fun CreatePostScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            OutlinedTextField(
+            MiuixTextField(
                 value = uiState.title,
                 onValueChange = viewModel::onTitleChange,
-                label = { Text("标题") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                placeholder = "标题",
+                singleLine = true
             )
 
             Spacer(Modifier.height(12.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("内容格式", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    text = "内容格式",
+                    style = MiuixTheme.textStyles.body2,
+                    fontWeight = FontWeight.Medium,
+                    color = MiuixTheme.colorScheme.onBackground
+                )
                 Spacer(Modifier.width(12.dp))
-                FilterChip(
-                    selected = uiState.contentType == 1,
+                // 原来的 FilterChip 换成 Miuix 按钮：选中态用主色，未选中用次级色
+                Button(
                     onClick = { viewModel.onContentTypeChange(1) },
-                    label = { Text("文本") }
-                )
+                    colors = if (uiState.contentType == 1) ButtonDefaults.buttonColorsPrimary()
+                    else ButtonDefaults.buttonColors()
+                ) {
+                    Text("文本")
+                }
                 Spacer(Modifier.width(8.dp))
-                FilterChip(
-                    selected = uiState.contentType == 2,
+                Button(
                     onClick = { viewModel.onContentTypeChange(2) },
-                    label = { Text("Markdown") }
-                )
+                    colors = if (uiState.contentType == 2) ButtonDefaults.buttonColorsPrimary()
+                    else ButtonDefaults.buttonColors()
+                ) {
+                    Text("Markdown")
+                }
             }
 
             Spacer(Modifier.height(12.dp))
 
             if (uiState.contentType == 2 && isPreviewMode) {
-                Surface(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 240.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                        .heightIn(min = 240.dp)
                 ) {
                     Box(modifier = Modifier.padding(16.dp)) {
                         if (uiState.content.isBlank()) {
                             Text(
-                                "暂无内容",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = "暂无内容",
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                             )
                         } else {
                             MarkdownText(
@@ -254,17 +283,17 @@ fun CreatePostScreen(
                     }
                 }
             } else {
-                OutlinedTextField(
+                MiuixTextField(
                     value = contentFieldValue,
                     onValueChange = { newValue ->
                         contentFieldValue = newValue
                         viewModel.onContentChange(newValue.text)
                     },
-                    label = { Text(if (uiState.contentType == 2) "内容（支持 Markdown）" else "内容") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 240.dp)
-                        .focusRequester(focusRequester)
+                    placeholder = if (uiState.contentType == 2) "内容（支持 Markdown）" else "内容",
+                    singleLine = false,
+                    minHeight = 240,
+                    focusRequester = focusRequester,
+                    modifier = Modifier.heightIn(min = 240.dp)
                 )
             }
         }
