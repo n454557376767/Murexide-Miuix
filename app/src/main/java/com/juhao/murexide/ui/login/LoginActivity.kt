@@ -1,7 +1,5 @@
 package com.juhao.murexide.ui.login
 
-import com.juhao.murexide.ui.icons.AppIcons
-
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -9,12 +7,10 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.ViewModelProvider
 import com.juhao.murexide.MainActivity
@@ -24,6 +20,9 @@ import com.juhao.murexide.repository.AuthRepository
 import com.juhao.murexide.ui.theme.MurexideTheme
 import com.juhao.murexide.utils.DeviceIdProvider
 import kotlinx.coroutines.launch
+import com.juhao.murexide.ui.components.MiuixAlertDialog
+import com.juhao.murexide.ui.components.MiuixTextField
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 class LoginActivity : ComponentActivity() {
     private val accountStorage by lazy { AccountStorage.getInstance(this) }
@@ -46,7 +45,11 @@ class LoginActivity : ComponentActivity() {
             var showTokenDialog by remember { mutableStateOf(false) }
 
             MurexideTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MiuixTheme.colorScheme.background)
+                ) {
                     LoginScreen(
                         onLoginSuccess = { token ->
                             completeLogin(token, isAddMode, "登录成功")
@@ -140,37 +143,18 @@ fun TokenInputDialog(
 ) {
     var token by remember { mutableStateOf("") }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                AppIcons.Key,
-                contentDescription = null
-            )
-        },
-        title = { Text("Token 登录") },
-        text = {
-            OutlinedTextField(
-                value = token,
-                onValueChange = { token = it },
-                placeholder = { Text("请输入 Token") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp)
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onConfirm(token) },
-                enabled = token.isNotBlank()
-            ) {
-                Text("登录")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
-        }
-    )
+    MiuixAlertDialog(
+        show = true,
+        title = "Token 登录",
+        confirmText = "登录",
+        confirmEnabled = token.isNotBlank(),
+        onConfirm = { onConfirm(token) },
+        onDismissRequest = onDismiss
+    ) {
+        MiuixTextField(
+            value = token,
+            onValueChange = { token = it },
+            placeholder = "请输入 Token"
+        )
+    }
 }

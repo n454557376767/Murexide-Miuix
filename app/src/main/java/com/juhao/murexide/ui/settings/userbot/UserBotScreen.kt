@@ -1,13 +1,10 @@
 package com.juhao.murexide.ui.settings.userbot
 
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,8 +24,12 @@ import com.juhao.murexide.ui.components.*
 import com.juhao.murexide.ui.icons.AppIcons
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserBotPage(
     modifier: Modifier = Modifier,
@@ -94,42 +95,39 @@ fun UserBotPage(
     }
 
     if (showTip) {
-        AlertDialog(
-            onDismissRequest = { if (tipCountdown <= 0) showTip = false },
-            icon = { Icon(AppIcons.Info, contentDescription = null) },
-            title = { Text("用户 Bot 使用提示") },
-            text = {
-                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    Text("用户 Bot 功能会通过 WebSocket 收到相应事件后根据你的设置进行响应。")
-                    Spacer(Modifier.height(8.dp))
-                    Text("请勿用于攻击、阻碍他人正常交流，违者后果自负。")
-                    Spacer(Modifier.height(8.dp))
-                    Text("软件不会做出除你设置以外的事情，如果你不放心可前往关于查看源代码，否则不要使用。")
-                    Spacer(Modifier.height(8.dp))
-                    Text("此功能仅在 App 运行且 WebSocket 已连接时生效。")
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = { showTip = false },
-                    enabled = tipCountdown <= 0
-                ) {
-                    Text(if (tipCountdown > 0) "请阅读（$tipCountdown s）" else "我知道了")
-                }
+        MiuixAlertDialog(
+            show = true,
+            title = "用户 Bot 使用提示",
+            confirmText = if (tipCountdown > 0) "请阅读（$tipCountdown s）" else "我知道了",
+            confirmEnabled = tipCountdown <= 0,
+            onConfirm = { showTip = false },
+            onDismissRequest = { if (tipCountdown <= 0) showTip = false }
+        ) {
+            listOf(
+                "用户 Bot 功能会通过 WebSocket 收到相应事件后根据你的设置进行响应。",
+                "请勿用于攻击、阻碍他人正常交流，违者后果自负。",
+                "软件不会做出除你设置以外的事情，如果你不放心可前往关于查看源代码，否则不要使用。",
+                "此功能仅在 App 运行且 WebSocket 已连接时生效。"
+            ).forEach { line ->
+                Text(
+                    text = line,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceSecondary
+                )
+                Spacer(Modifier.height(8.dp))
             }
-        )
+        }
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
-            tabs.forEachIndexed { index, title ->
-                Tab(
-                    selected = pagerState.currentPage == index,
-                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                    text = { Text(title) }
-                )
-            }
-        }
+        CapsuleTabBar(
+            tabs = tabs,
+            selectedTabIndex = pagerState.currentPage,
+            onTabSelected = { index ->
+                scope.launch { pagerState.animateScrollToPage(index) }
+            },
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+        )
 
         HorizontalPager(
             state = pagerState,
@@ -177,209 +175,195 @@ fun UserBotPage(
 
     if (showRecallDialog) {
         val isEditing = editingRecallId != null
-        AlertDialog(
-            onDismissRequest = { showRecallDialog = false },
-            title = { Text(if (isEditing) "编辑撤回目标" else "添加撤回目标") },
-            text = {
-                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    Text(
-                        if (isEditing) {
-                            "修改这个发送者 ID。"
-                        } else {
-                            "收到这些用户发的消息时自动撤回，支持一次输入多个，用英文逗号分隔。"
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    OutlinedTextField(
-                        value = editRecallIds,
-                        onValueChange = { editRecallIds = it },
-                        label = { Text("发送者 ID") },
-                        placeholder = { Text(if (isEditing) "10001" else "10001,10002") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if (isEditing) {
-                        Spacer(Modifier.height(12.dp))
-                        OutlinedButton(
-                            onClick = {
-                                val oldId = editingRecallId
-                                if (oldId != null) {
-                                    recallSenderIds.remove(oldId)
-                                    persistRecallIds()
-                                }
-                                showRecallDialog = false
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(AppIcons.Delete, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text("删除此目标")
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val newIds = editRecallIds
-                            .split(",")
-                            .map { it.trim() }
-                            .filter { it.isNotEmpty() }
-                        if (isEditing) {
-                            val oldId = editingRecallId
-                            if (oldId != null) {
-                                recallSenderIds.remove(oldId)
-                            }
-                            newIds.forEach { id ->
-                                if (id !in recallSenderIds) recallSenderIds.add(id)
-                            }
-                        } else {
-                            newIds.forEach { id ->
-                                if (id !in recallSenderIds) recallSenderIds.add(id)
-                            }
-                        }
-                        persistRecallIds()
-                        showRecallDialog = false
-                    }
-                ) {
-                    Text("保存")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showRecallDialog = false }) {
-                    Text("取消")
+
+        fun saveRecallIds() {
+            val newIds = editRecallIds
+                .split(",")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+            if (isEditing) {
+                val oldId = editingRecallId
+                if (oldId != null) {
+                    recallSenderIds.remove(oldId)
                 }
             }
-        )
+            newIds.forEach { id ->
+                if (id !in recallSenderIds) recallSenderIds.add(id)
+            }
+            persistRecallIds()
+            showRecallDialog = false
+        }
+
+        fun deleteRecallTarget() {
+            val oldId = editingRecallId
+            if (oldId != null) {
+                recallSenderIds.remove(oldId)
+                persistRecallIds()
+            }
+            showRecallDialog = false
+        }
+
+        MiuixAlertDialog(
+            show = true,
+            title = if (isEditing) "编辑撤回目标" else "添加撤回目标",
+            summary = if (isEditing) {
+                "修改这个发送者 ID。"
+            } else {
+                "收到这些用户发的消息时自动撤回，支持一次输入多个，用英文逗号分隔。"
+            },
+            confirmText = "保存",
+            onConfirm = { saveRecallIds() },
+            onDismissRequest = { showRecallDialog = false }
+        ) {
+            MiuixTextField(
+                value = editRecallIds,
+                onValueChange = { editRecallIds = it },
+                placeholder = if (isEditing) "10001" else "10001,10002"
+            )
+            if (isEditing) {
+                Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = { deleteRecallTarget() },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        color = MiuixTheme.colorScheme.errorContainer,
+                        contentColor = MiuixTheme.colorScheme.onErrorContainer
+                    )
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MiuixTheme.colorScheme.onErrorContainer
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text("删除此目标")
+                }
+            }
+        }
     }
 
     if (showEditor) {
-        AlertDialog(
-            onDismissRequest = { showEditor = false },
-            title = { Text(if (editingIndex >= 0) "编辑规则" else "添加规则") },
-            text = {
-                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    SingleChoiceSegmentedButtonRow(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        UserBotMatchType.entries.forEachIndexed { index, type ->
-                            val label = when (type) {
-                                UserBotMatchType.CONTAINS -> "包含"
-                                UserBotMatchType.EXACT -> "完全"
-                                UserBotMatchType.REGEX -> "正则"
-                            }
-                            SegmentedButton(
-                                selected = editMatchType == type,
-                                onClick = {
-                                    editMatchType = type
-                                    regexError = if (type == UserBotMatchType.REGEX) {
-                                        UserBotManager.validateRegex(editKeyword)
-                                    } else null
-                                },
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index,
-                                    count = UserBotMatchType.entries.size
-                                )
-                            ) {
-                                Text(label)
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    OutlinedTextField(
-                        value = editKeyword,
-                        onValueChange = {
-                            editKeyword = it
-                            if (editMatchType == UserBotMatchType.REGEX) {
-                                regexError = UserBotManager.validateRegex(it)
-                            }
-                        },
-                        label = {
-                            Text(
-                                when (editMatchType) {
-                                    UserBotMatchType.CONTAINS -> "关键词（包含即触发）"
-                                    UserBotMatchType.EXACT -> "关键词（完全等于才触发）"
-                                    UserBotMatchType.REGEX -> "正则表达式"
-                                }
-                            )
-                        },
-                        singleLine = true,
-                        isError = regexError != null,
-                        supportingText = regexError?.let { { Text(it) } },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    OutlinedTextField(
-                        value = editReply,
-                        onValueChange = { editReply = it },
-                        label = { Text("回复内容") },
-                        minLines = 3,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if (editingIndex >= 0) {
-                        Spacer(Modifier.height(12.dp))
-                        OutlinedButton(
-                            onClick = {
-                                rules.removeAt(editingIndex)
-                                scope.launch {
-                                    settingsStorage.setUserBotRules(
-                                        UserBotManager.encodeRules(rules.toList())
-                                    )
-                                }
-                                showEditor = false
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(AppIcons.Delete, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text("删除此规则")
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        if (editKeyword.isBlank() || editReply.isBlank()) return@TextButton
-                        if (editMatchType == UserBotMatchType.REGEX) {
-                            val error = UserBotManager.validateRegex(editKeyword)
-                            if (error != null) {
-                                regexError = error
-                                return@TextButton
-                            }
-                        }
-                        val newRule = UserBotRule(
-                            keyword = editKeyword.trim(),
-                            reply = editReply.trim(),
-                            matchType = editMatchType
-                        )
-                        if (editingIndex >= 0) {
-                            rules[editingIndex] = newRule
-                        } else {
-                            rules.add(newRule)
-                        }
-                        scope.launch {
-                            settingsStorage.setUserBotRules(
-                                UserBotManager.encodeRules(rules.toList())
-                            )
-                        }
-                        showEditor = false
-                    },
-                    enabled = editKeyword.isNotBlank() && editReply.isNotBlank() && regexError == null
-                ) {
-                    Text("保存")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showEditor = false }) {
-                    Text("取消")
+        val matchTypeLabels = listOf("包含", "完全", "正则")
+
+        fun saveRule() {
+            if (editKeyword.isBlank() || editReply.isBlank()) return
+            if (editMatchType == UserBotMatchType.REGEX) {
+                val error = UserBotManager.validateRegex(editKeyword)
+                if (error != null) {
+                    regexError = error
+                    return
                 }
             }
-        )
+            val newRule = UserBotRule(
+                keyword = editKeyword.trim(),
+                reply = editReply.trim(),
+                matchType = editMatchType
+            )
+            if (editingIndex >= 0) {
+                rules[editingIndex] = newRule
+            } else {
+                rules.add(newRule)
+            }
+            scope.launch {
+                settingsStorage.setUserBotRules(
+                    UserBotManager.encodeRules(rules.toList())
+                )
+            }
+            showEditor = false
+        }
+
+        fun deleteRule() {
+            if (editingIndex < 0) return
+            rules.removeAt(editingIndex)
+            scope.launch {
+                settingsStorage.setUserBotRules(
+                    UserBotManager.encodeRules(rules.toList())
+                )
+            }
+            showEditor = false
+        }
+
+        MiuixAlertDialog(
+            show = true,
+            title = if (editingIndex >= 0) "编辑规则" else "添加规则",
+            confirmText = "保存",
+            confirmEnabled = editKeyword.isNotBlank() &&
+                editReply.isNotBlank() &&
+                regexError == null,
+            onConfirm = { saveRule() },
+            onDismissRequest = { showEditor = false }
+        ) {
+            CapsuleTabBar(
+                tabs = matchTypeLabels,
+                selectedTabIndex = UserBotMatchType.entries.indexOf(editMatchType)
+                    .coerceAtLeast(0),
+                onTabSelected = { index ->
+                    val type = UserBotMatchType.entries.getOrNull(index)
+                        ?: UserBotMatchType.CONTAINS
+                    editMatchType = type
+                    regexError = if (type == UserBotMatchType.REGEX) {
+                        UserBotManager.validateRegex(editKeyword)
+                    } else {
+                        null
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(10.dp))
+            MiuixTextField(
+                value = editKeyword,
+                onValueChange = {
+                    editKeyword = it
+                    if (editMatchType == UserBotMatchType.REGEX) {
+                        regexError = UserBotManager.validateRegex(it)
+                    }
+                },
+                placeholder = when (editMatchType) {
+                    UserBotMatchType.CONTAINS -> "关键词（包含即触发）"
+                    UserBotMatchType.EXACT -> "关键词（完全等于才触发）"
+                    UserBotMatchType.REGEX -> "正则表达式"
+                }
+            )
+            regexError?.let { message ->
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = message,
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.error
+                )
+            }
+            Spacer(Modifier.height(10.dp))
+            MiuixTextField(
+                value = editReply,
+                onValueChange = { editReply = it },
+                placeholder = "回复内容",
+                singleLine = false
+            )
+            if (editingIndex >= 0) {
+                Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = { deleteRule() },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        color = MiuixTheme.colorScheme.errorContainer,
+                        contentColor = MiuixTheme.colorScheme.onErrorContainer
+                    )
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MiuixTheme.colorScheme.onErrorContainer
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("删除此规则")
+                }
+            }
+        }
     }
 }
+
 
 @Composable
 private fun AutoReplyTab(

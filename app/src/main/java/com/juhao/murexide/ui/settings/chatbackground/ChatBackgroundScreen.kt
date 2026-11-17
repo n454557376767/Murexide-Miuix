@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,8 +27,14 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatBackgroundScreen(
     viewModel: ChatBackgroundViewModel,
@@ -94,14 +99,21 @@ fun ChatBackgroundScreen(
                 state.isLoading && state.list.isEmpty() -> Box(
                     Modifier.fillMaxSize().padding(padding),
                     Alignment.Center
-                ) { CircularProgressIndicator() }
+                ) { MiuixLoadingIndicator(size = 36.dp) }
 
                 state.error != null -> EmptyPlaceholder(
                     modifier = Modifier.padding(padding),
                     icon = AppIcons.Warning,
                     title = "加载失败",
                     subtitle = state.error,
-                    primaryButton = { Button(onClick = viewModel::load) { Text("重试") } }
+                    primaryButton = {
+                        Button(
+                            onClick = viewModel::load,
+                            colors = ButtonDefaults.buttonColorsPrimary()
+                        ) {
+                            Text("重试")
+                        }
+                    }
                 )
 
                 state.list.isEmpty() -> EmptyPlaceholder(
@@ -122,11 +134,7 @@ fun ChatBackgroundScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(state.list, key = { it.id }) { item ->
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            color = MaterialTheme.colorScheme.surfaceContainerHigh
-                        ) {
+                        Card(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 AsyncImage(
                                     model = item.imgUrl,
@@ -146,8 +154,9 @@ fun ChatBackgroundScreen(
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = if (item.chatId == "all") "全部聊天" else item.chatId,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.SemiBold,
+                                            style = MiuixTheme.textStyles.body1,
+                                            fontWeight = FontWeight.Medium,
+                                            color = MiuixTheme.colorScheme.onSurfaceContainer,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
@@ -157,15 +166,15 @@ fun ChatBackgroundScreen(
                                                 "yyyy-MM-dd HH:mm",
                                                 Locale.getDefault()
                                             ).format(Date(item.updateTime * 1000)),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            style = MiuixTheme.textStyles.footnote2,
+                                            color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                                         )
                                     }
                                     IconButton(onClick = { deleteTarget = item }) {
                                         Icon(
                                             imageVector = AppIcons.Delete,
                                             contentDescription = "删除背景",
-                                            tint = MaterialTheme.colorScheme.error
+                                            tint = MiuixTheme.colorScheme.error
                                         )
                                     }
                                 }
@@ -176,9 +185,8 @@ fun ChatBackgroundScreen(
             }
 
             if (uploading || state.isSubmitting) {
-                LinearProgressIndicator(
+                MiuixIndeterminateLinearProgress(
                     modifier = Modifier
-                        .fillMaxWidth()
                         .align(Alignment.TopCenter)
                         .padding(top = padding.calculateTopPadding())
                 )
@@ -188,26 +196,16 @@ fun ChatBackgroundScreen(
 
     val target = deleteTarget
     if (target != null) {
-        AlertDialog(
-            onDismissRequest = { deleteTarget = null },
-            icon = { Icon(AppIcons.Delete, null, tint = MaterialTheme.colorScheme.error) },
-            title = { Text("删除背景") },
-            text = {
-                Text(
-                    "确定要删除「${if (target.chatId == "all") "全部聊天" else target.chatId}」的背景吗？"
-                )
+        MiuixAlertDialog(
+            show = true,
+            title = "删除背景",
+            summary = "确定要删除「${if (target.chatId == "all") "全部聊天" else target.chatId}」的背景吗？",
+            confirmText = "删除",
+            onConfirm = {
+                viewModel.deleteBackground(target.chatId)
+                deleteTarget = null
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deleteBackground(target.chatId)
-                        deleteTarget = null
-                    }
-                ) { Text("删除", color = MaterialTheme.colorScheme.error) }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) { Text("取消") }
-            }
+            onDismissRequest = { deleteTarget = null }
         )
     }
 }

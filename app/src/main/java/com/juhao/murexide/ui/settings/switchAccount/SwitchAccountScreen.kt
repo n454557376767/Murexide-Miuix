@@ -16,11 +16,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,8 +40,13 @@ import com.juhao.murexide.data.local.LocalCache
 import com.juhao.murexide.ui.components.*
 import com.juhao.murexide.ui.login.LoginActivity
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Greeting(
     onBack: () -> Unit,
@@ -67,33 +72,41 @@ fun Greeting(
         ) {
             if (!isChooseMode) {
                 item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                LoginActivity.start(context, true)
+                    BasicComponent(
+                        title = "添加账号",
+                        startAction = {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(MiuixTheme.colorScheme.secondaryContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.Add,
+                                    contentDescription = null,
+                                    tint = MiuixTheme.colorScheme.onSecondaryContainer
+                                )
                             }
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(48.dp).padding(8.dp),
-                            imageVector = AppIcons.Add,
-                            contentDescription = null
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Text("添加账号", style = MaterialTheme.typography.bodyMedium)
-                    }
+                        },
+                        onClick = { LoginActivity.start(context, true) }
+                    )
                 }
             }
 
             if (accounts.isEmpty()) {
                 item {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(text = "暂无账号", modifier = Modifier.padding(vertical = 12.dp))
+                        Text(
+                            text = "暂无账号",
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                        )
                     }
                 }
             }
@@ -136,127 +149,86 @@ fun AccountRow(
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    Box {
-        ListItem(
-            onClick = {
-                if (!isChooseMode) {
-                    showMenu = true
-                } else {
-                    onSwitchAccount(account)
-                }
-            },
-            leadingContent = {
-                if (account.avatar.isNotBlank()) {
-                    Avatar(url = account.avatar, size = 48.dp)
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                    )
-                }
-            },
-            trailingContent = {
-                if (!isCurrentAccount && !isChooseMode) {
-                    Icon(
-                        AppIcons.ChevronRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(account.username, style = MaterialTheme.typography.bodyMedium)
-                Text(
-                    "ID: ${account.id}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Row {
-                    if (isCurrentAccount && !isChooseMode) {
-                        Text(
-                            "当前",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    Spacer(Modifier.width(2.dp))
-                    if (!account.isValidated) {
-                        Text(
-                            "账号未验证，切换至此账号验证",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-            }
-        }
-
-        DropdownMenu(
-            expanded = showMenu && !isCurrentAccount,
-            onDismissRequest = { showMenu = false }
-        ) {
-            DropdownMenuItem(
-                text = { Text("切换至此账号") },
-                onClick = {
-                    onSwitchAccount(account)
-                    showMenu = false
-                },
-                leadingIcon = {
-                    Icon(
-                        AppIcons.SwitchAccount,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            )
-            DropdownMenuItem(
-                text = { Text("移除账号", color = MaterialTheme.colorScheme.error) },
-                onClick = {
-                    showDeleteDialog = true
-                    showMenu = false
-                },
-                leadingIcon = {
-                    Icon(
-                        AppIcons.Delete,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-            )
-        }
+    val summaryText = buildString {
+        append("ID: ${account.id}")
+        if (isCurrentAccount && !isChooseMode) append(" · 当前账号")
+        if (!account.isValidated) append(" · 账号未验证，切换至此账号验证")
     }
 
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            icon = {
+    BasicComponent(
+        title = account.username,
+        summary = summaryText,
+        startAction = {
+            if (account.avatar.isNotBlank()) {
+                Avatar(url = account.avatar, size = 48.dp)
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MiuixTheme.colorScheme.surfaceContainerHigh)
+                )
+            }
+        },
+        endActions = if (!isCurrentAccount && !isChooseMode) {
+            {
                 Icon(
-                    AppIcons.Warning,
+                    imageVector = AppIcons.ChevronRight,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                 )
-            },
-            title = { Text("删除账号") },
-            text = {
-                Text("确定要删除此账号吗？")
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    showDeleteDialog = false
-                    onRemoveAccount(account)
-                }) {
-                    Text("确定", color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("取消")
-                }
             }
-        )
+        } else {
+            null
+        },
+        onClick = {
+            if (!isChooseMode) {
+                showMenu = true
+            } else {
+                onSwitchAccount(account)
+            }
+        }
+    )
+
+    MiuixAlertDialog(
+        show = showMenu && !isCurrentAccount,
+        title = account.username,
+        summary = summaryText,
+        confirmText = null,
+        dismissText = null,
+        onDismissRequest = { showMenu = false }
+    ) {
+        Button(
+            onClick = {
+                onSwitchAccount(account)
+                showMenu = false
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColorsPrimary()
+        ) {
+            Text("切换至此账号")
+        }
+        Spacer(Modifier.height(10.dp))
+        Button(
+            onClick = {
+                showDeleteDialog = true
+                showMenu = false
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("移除账号")
+        }
     }
+
+    MiuixAlertDialog(
+        show = showDeleteDialog,
+        title = "删除账号",
+        summary = "确定要删除此账号吗？",
+        confirmText = "删除",
+        onConfirm = {
+            showDeleteDialog = false
+            onRemoveAccount(account)
+        },
+        onDismissRequest = { showDeleteDialog = false }
+    )
 }

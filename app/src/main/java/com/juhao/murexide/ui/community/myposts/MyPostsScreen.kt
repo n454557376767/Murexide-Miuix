@@ -1,13 +1,12 @@
 package com.juhao.murexide.ui.community.myposts
 
 import com.juhao.murexide.ui.icons.AppIcons
-import com.juhao.murexide.ui.icons.AutoMirroredIcon
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,8 +18,12 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.juhao.murexide.ui.community.PostCard
 import com.juhao.murexide.ui.community.detail.PostDetailActivity
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
+import com.juhao.murexide.ui.components.MiuixPageScaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyPostsScreen(
     onBackClick: () -> Unit,
@@ -54,17 +57,9 @@ fun MyPostsScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("我的文章") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        AutoMirroredIcon(AppIcons.ArrowBack, contentDescription = "返回")
-                    }
-                }
-            )
-        }
+    MiuixPageScaffold(
+        title = "我的文章",
+        onBack = onBackClick
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = uiState.isRefreshing,
@@ -76,7 +71,7 @@ fun MyPostsScreen(
             when {
                 uiState.isLoading && uiState.posts.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        ContainedLoadingIndicator()
+                        MiuixLoadingIndicator(size = 36.dp)
                     }
                 }
 
@@ -88,8 +83,9 @@ fun MyPostsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    uiState.error ?: "你还没有发布文章",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    text = uiState.error ?: "你还没有发布文章",
+                                    style = MiuixTheme.textStyles.body2,
+                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                             }
                         }
@@ -112,10 +108,7 @@ fun MyPostsScreen(
                                     Modifier.fillMaxWidth().padding(16.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(28.dp),
-                                        strokeWidth = 2.dp
-                                    )
+                                    MiuixLoadingIndicator(size = 28.dp)
                                 }
                             }
                         }

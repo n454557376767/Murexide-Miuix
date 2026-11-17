@@ -6,10 +6,8 @@ import android.util.Base64
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,7 +19,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.juhao.murexide.R
+import com.juhao.murexide.ui.components.CapsuleTabBar
+import com.juhao.murexide.ui.components.MiuixAlertDialog
+import com.juhao.murexide.ui.components.MiuixLoadingIndicator
+import com.juhao.murexide.ui.components.MiuixTextField
 import com.juhao.murexide.ui.settings.switchAccount.SwitchAccountActivity
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private enum class LoginMode { PHONE, EMAIL }
 
@@ -55,34 +61,28 @@ fun LoginScreen(
     ) {
         Text(
             text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary,
+            style = MiuixTheme.textStyles.title1,
+            color = MiuixTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
         Text(
             text = "欢迎登录",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.body1,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        SingleChoiceSegmentedButtonRow(
+        CapsuleTabBar(
+            tabs = listOf("手机号登录", "邮箱登录"),
+            selectedTabIndex = loginMode.ordinal,
+            onTabSelected = { index ->
+                loginMode = if (index == 0) LoginMode.PHONE else LoginMode.EMAIL
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 24.dp)
-        ) {
-            SegmentedButton(
-                selected = loginMode == LoginMode.PHONE,
-                onClick = { loginMode = LoginMode.PHONE },
-                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-            ) { Text("手机号登录") }
-            SegmentedButton(
-                selected = loginMode == LoginMode.EMAIL,
-                onClick = { loginMode = LoginMode.EMAIL },
-                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-            ) { Text("邮箱登录") }
-        }
+        )
 
         when (loginMode) {
             LoginMode.PHONE -> PhoneLoginContent(
@@ -106,15 +106,22 @@ fun LoginScreen(
                 .padding(top = 16.dp),
             horizontalArrangement = Arrangement.End
         ) {
-            TextButton(onClick = {
-                val intent = Intent(context, SwitchAccountActivity::class.java).apply {
-                    putExtra("chooseMode", true)
-                }
-                context.startActivity(intent)
-            }) {
+            Button(
+                onClick = {
+                    val intent = Intent(context, SwitchAccountActivity::class.java).apply {
+                        putExtra("chooseMode", true)
+                    }
+                    context.startActivity(intent)
+                },
+                colors = ButtonDefaults.buttonColors()
+            ) {
                 Text("现有账号")
             }
-            TextButton(onClick = onTokenLogin) {
+            Spacer(modifier = Modifier.width(10.dp))
+            Button(
+                onClick = onTokenLogin,
+                colors = ButtonDefaults.buttonColors()
+            ) {
                 Text("Token登录")
             }
         }
@@ -145,58 +152,50 @@ private fun PhoneLoginContent(
 ) {
     val phoneValid = phone.trim().length == 11 && phone.trim().all { it.isDigit() }
 
-    // 手机号
-    OutlinedTextField(
+    MiuixTextField(
         value = phone,
-        onValueChange = { if (it.length <= 11) onPhoneChange(it.filter { c -> c.isDigit() }) },
-        label = { Text("手机号") },
-        placeholder = { Text("请输入手机号") },
+        onValueChange = { input -> if (input.length <= 11) onPhoneChange(input.filter { it.isDigit() }) },
+        placeholder = "手机号",
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Phone,
             imeAction = ImeAction.Next
         ),
-        singleLine = true,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp),
-        shape = RoundedCornerShape(12.dp)
+            .padding(bottom = 12.dp)
     )
 
-    // 验证码 + 获取验证码
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp),
+            .padding(bottom = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        OutlinedTextField(
+        MiuixTextField(
             value = smsCode,
-            onValueChange = { if (it.length <= 6) onSmsCodeChange(it.filter { c -> c.isDigit() }) },
-            label = { Text("验证码") },
-            placeholder = { Text("短信验证码") },
+            onValueChange = { input -> if (input.length <= 6) onSmsCodeChange(input.filter { it.isDigit() }) },
+            placeholder = "短信验证码",
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
                 imeAction = ImeAction.Done
             ),
-            singleLine = true,
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(12.dp)
+            modifier = Modifier.weight(1f)
         )
 
         Spacer(modifier = Modifier.width(12.dp))
 
         val canSend = phoneValid && phoneState.countdown == 0 &&
                 !phoneState.isCaptchaLoading && !phoneState.isSendingSms
-        OutlinedButton(
+        Button(
             onClick = onSendCode,
             enabled = canSend,
-            modifier = Modifier.height(56.dp),
-            shape = RoundedCornerShape(12.dp)
+            colors = ButtonDefaults.buttonColors()
         ) {
             if (phoneState.isCaptchaLoading || phoneState.isSendingSms) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(18.dp),
-                    strokeWidth = 2.dp
+                MiuixLoadingIndicator(
+                    size = 18.dp,
+                    strokeWidth = 2.dp,
+                    color = MiuixTheme.colorScheme.onSecondaryVariant
                 )
             } else {
                 Text(
@@ -209,30 +208,30 @@ private fun PhoneLoginContent(
     phoneState.error?.let {
         Text(
             text = it,
-            color = MaterialTheme.colorScheme.error,
+            color = MiuixTheme.colorScheme.error,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            style = MaterialTheme.typography.bodyMedium
+            style = MiuixTheme.textStyles.footnote1
         )
     }
 
     Button(
         onClick = onLogin,
         enabled = !phoneState.isLoggingIn && phoneValid && smsCode.isNotBlank(),
+        colors = ButtonDefaults.buttonColorsPrimary(),
         modifier = Modifier
             .fillMaxWidth()
-            .height(50.dp),
-        shape = RoundedCornerShape(12.dp)
+            .height(50.dp)
     ) {
         if (phoneState.isLoggingIn) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
-                color = MaterialTheme.colorScheme.onPrimary,
-                strokeWidth = 2.dp
+            MiuixLoadingIndicator(
+                size = 22.dp,
+                strokeWidth = 2.dp,
+                color = MiuixTheme.colorScheme.onPrimary
             )
         } else {
-            Text(text = "登录", style = MaterialTheme.typography.titleMedium)
+            Text(text = "登录", style = MiuixTheme.textStyles.button)
         }
     }
 }
@@ -247,49 +246,61 @@ private fun EmailLoginContent(
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
 
-    OutlinedTextField(
+    MiuixTextField(
         value = email,
         onValueChange = { email = it; emailError = null },
-        label = { Text("邮箱") },
-        placeholder = { Text("请输入邮箱地址") },
-        isError = emailError != null,
-        supportingText = emailError?.let { { Text(it) } },
+        placeholder = "邮箱地址",
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Email,
             imeAction = ImeAction.Next
         ),
-        singleLine = true,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp),
-        shape = RoundedCornerShape(12.dp)
+            .padding(bottom = 12.dp)
     )
+    emailError?.let { message ->
+        Text(
+            text = message,
+            color = MiuixTheme.colorScheme.error,
+            style = MiuixTheme.textStyles.footnote1,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        )
+    }
 
-    OutlinedTextField(
+    MiuixTextField(
         value = password,
         onValueChange = { password = it; passwordError = null },
-        label = { Text("密码") },
-        placeholder = { Text("请输入密码") },
+        placeholder = "密码",
         visualTransformation = PasswordVisualTransformation(),
-        isError = passwordError != null,
-        supportingText = passwordError?.let { { Text(it) } },
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Password,
             imeAction = ImeAction.Done
         ),
-        singleLine = true,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp),
-        shape = RoundedCornerShape(12.dp)
+            .padding(bottom = 12.dp)
     )
+    passwordError?.let { message ->
+        Text(
+            text = message,
+            color = MiuixTheme.colorScheme.error,
+            style = MiuixTheme.textStyles.footnote1,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        )
+    }
 
     if (uiState is LoginUiState.Error) {
         Text(
             text = uiState.message,
-            color = MaterialTheme.colorScheme.error,
-            modifier = Modifier.padding(bottom = 16.dp),
-            style = MaterialTheme.typography.bodyMedium
+            color = MiuixTheme.colorScheme.error,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            style = MiuixTheme.textStyles.footnote1
         )
     }
 
@@ -305,19 +316,19 @@ private fun EmailLoginContent(
             if (!hasError) onLogin(email, password)
         },
         enabled = uiState !is LoginUiState.Loading && email.isNotBlank() && password.isNotBlank(),
+        colors = ButtonDefaults.buttonColorsPrimary(),
         modifier = Modifier
             .fillMaxWidth()
-            .height(50.dp),
-        shape = RoundedCornerShape(12.dp)
+            .height(50.dp)
     ) {
         if (uiState is LoginUiState.Loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
-                color = MaterialTheme.colorScheme.onPrimary,
-                strokeWidth = 2.dp
+            MiuixLoadingIndicator(
+                size = 22.dp,
+                strokeWidth = 2.dp,
+                color = MiuixTheme.colorScheme.onPrimary
             )
         } else {
-            Text(text = "登录", style = MaterialTheme.typography.titleMedium)
+            Text(text = "登录", style = MiuixTheme.textStyles.button)
         }
     }
 }
@@ -340,54 +351,47 @@ private fun CaptchaDialog(
         }.getOrNull()
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("人机验证") },
-        text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                if (bitmap != null) {
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "验证码图片",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(80.dp)
-                            .padding(bottom = 8.dp)
-                    )
-                } else {
-                    Text(
-                        "验证码图片加载失败",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                }
-
-                TextButton(onClick = onRefresh) { Text("看不清，换一张") }
-
-                OutlinedTextField(
-                    value = captchaCode,
-                    onValueChange = { captchaCode = it },
-                    placeholder = { Text("请输入图片中的字符") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp)
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onConfirm(captchaCode.trim()) },
-                enabled = captchaCode.isNotBlank() && !isSending
-            ) {
-                if (isSending) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                } else {
-                    Text("确定")
-                }
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+    MiuixAlertDialog(
+        show = true,
+        title = "人机验证",
+        confirmText = "确定",
+        confirmEnabled = captchaCode.isNotBlank() && !isSending,
+        onConfirm = { onConfirm(captchaCode.trim()) },
+        onDismissRequest = onDismiss
+    ) {
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = "验证码图片",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .padding(bottom = 8.dp)
+            )
+        } else {
+            Text(
+                text = "验证码图片加载失败",
+                color = MiuixTheme.colorScheme.error,
+                style = MiuixTheme.textStyles.footnote1,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
         }
-    )
+
+        Button(
+            onClick = onRefresh,
+            colors = ButtonDefaults.buttonColors()
+        ) {
+            Text("看不清，换一张")
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        MiuixTextField(
+            value = captchaCode,
+            onValueChange = { captchaCode = it },
+            placeholder = "请输入图片中的字符"
+        )
+        if (isSending) {
+            Spacer(modifier = Modifier.height(8.dp))
+            MiuixLoadingIndicator(size = 20.dp, strokeWidth = 2.dp)
+        }
+    }
 }

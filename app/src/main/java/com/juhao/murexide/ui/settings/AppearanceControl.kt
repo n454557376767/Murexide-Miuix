@@ -3,9 +3,10 @@ package com.juhao.murexide.ui.settings
 import com.juhao.murexide.ui.icons.AppIcons
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.ColorScheme
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,7 +20,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,6 +39,10 @@ import com.juhao.murexide.ui.components.*
 import com.juhao.murexide.ui.theme.*
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private const val CUSTOM_PREFIX = "CUSTOM_"
 
@@ -55,7 +60,6 @@ private fun encodeCustomThemeColor(color: Color): String {
     return "$CUSTOM_PREFIX$argb"
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppearanceControl(
     highlightId: String? = null,
@@ -170,13 +174,14 @@ fun AppearanceControl(
                                 imageVector = AppIcons.WbSunny,
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MiuixTheme.colorScheme.onSurfaceContainer
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
                                 text = "主题模式",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface
+                                style = MiuixTheme.textStyles.body1,
+                                fontWeight = FontWeight.Medium,
+                                color = MiuixTheme.colorScheme.onSurfaceContainer
                             )
                         }
                         Spacer(modifier = Modifier.height(12.dp))
@@ -252,65 +257,21 @@ fun AppearanceControl(
         if (liquidGlassEnabled) {
             item {
                 SettingsGroupSurface(isTop = false, isBottom = true, id = "appearance_liquid_glass_blur", highlightId = highlightId) {
-                    CustomItemCell {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        AppIcons.Opacity,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(20.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text("液态玻璃模糊", style = MaterialTheme.typography.bodyMedium)
-                                }
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = MaterialTheme.colorScheme.secondaryContainer
-                                ) {
-                                    Text(
-                                        text = "${
-                                            "%.1f".format(java.util.Locale.US, liquidGlassBlur)
-                                        }x",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Slider(
-                                value = liquidGlassBlur,
-                                onValueChange = { liquidGlassBlur = it },
-                                onValueChangeFinished = {
-                                    scope.launch { settingsStorage.setLiquidGlassBlur(liquidGlassBlur) }
-                                },
-                                valueRange = 0f..4f,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    "0",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    "4",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
+                    SettingsSliderItem(
+                        title = "液态玻璃模糊",
+                        valueText = "${
+                            "%.1f".format(java.util.Locale.US, liquidGlassBlur)
+                        }x",
+                        value = liquidGlassBlur,
+                        onValueChange = { liquidGlassBlur = it },
+                        onValueChangeFinished = {
+                            scope.launch { settingsStorage.setLiquidGlassBlur(liquidGlassBlur) }
+                        },
+                        icon = AppIcons.Opacity,
+                        valueRange = 0f..4f,
+                        startLabel = "0",
+                        endLabel = "4"
+                    )
                 }
             }
         }
@@ -333,63 +294,19 @@ fun AppearanceControl(
         if (showBackground) {
             item {
                 SettingsGroupSurface(isTop = false, isBottom = false, id = "appearance_background_opacity", highlightId = highlightId) {
-                    CustomItemCell {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        AppIcons.Image,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(20.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text("背景不透明度", style = MaterialTheme.typography.bodyMedium)
-                                }
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = MaterialTheme.colorScheme.secondaryContainer
-                                ) {
-                                    Text(
-                                        text = "${(backgroundOpacity * 100).toInt()}%",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Slider(
-                                value = backgroundOpacity,
-                                onValueChange = { backgroundOpacity = it },
-                                onValueChangeFinished = {
-                                    scope.launch { settingsStorage.setBackgroundOpacity(backgroundOpacity) }
-                                },
-                                valueRange = 0.2f..1f,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    "20%",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    "100%",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
+                    SettingsSliderItem(
+                        title = "背景不透明度",
+                        valueText = "${(backgroundOpacity * 100).toInt()}%",
+                        value = backgroundOpacity,
+                        onValueChange = { backgroundOpacity = it },
+                        onValueChangeFinished = {
+                            scope.launch { settingsStorage.setBackgroundOpacity(backgroundOpacity) }
+                        },
+                        icon = AppIcons.Image,
+                        valueRange = 0.2f..1f,
+                        startLabel = "20%",
+                        endLabel = "100%"
+                    )
                 }
             }
         }
@@ -492,21 +409,14 @@ private fun ThemeModeButtonGroup(
         .takeIf { it >= 0 }
         ?: themeModeOptions.lastIndex
 
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-        themeModeOptions.forEachIndexed { index, option ->
-            SegmentedButton(
-                selected = index == selectedIndex,
-                onClick = { onModeSelected(option.value) },
-                shape = SegmentedButtonDefaults.itemShape(
-                    index = index,
-                    count = themeModeOptions.size
-                ),
-                label = {
-                    Text(option.label, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            )
-        }
-    }
+    CapsuleTabBar(
+        tabs = themeModeOptions.map { it.label },
+        selectedTabIndex = selectedIndex,
+        onTabSelected = { index ->
+            themeModeOptions.getOrNull(index)?.let { onModeSelected(it.value) }
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 private data class ThemeColorOption(val value: String, val label: String)
@@ -540,13 +450,14 @@ private fun ThemeColorPicker(
                     imageVector = AppIcons.Draw,
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MiuixTheme.colorScheme.onSurfaceContainer
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = "主题颜色",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MiuixTheme.textStyles.body1,
+                    fontWeight = FontWeight.Medium,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
@@ -594,12 +505,22 @@ private fun ThemeColorBall(
             .semantics { contentDescription = "${option.label}主题" }
             .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
     ) {
-        Card(
-            onClick = onClick,
-            modifier = Modifier.size(64.dp),
-            shape = RoundedCornerShape(16.dp),
-            border = if (selected) BorderStroke(borderWidth, MaterialTheme.colorScheme.primary) else null,
-            colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer)
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(scheme.surfaceContainer)
+                .then(
+                    if (selected) {
+                        Modifier.border(
+                            borderWidth,
+                            MiuixTheme.colorScheme.primary,
+                            RoundedCornerShape(16.dp)
+                        )
+                    } else {
+                        Modifier
+                    }
+                )
         ) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Box(modifier = Modifier.size(48.dp)) {
@@ -647,9 +568,9 @@ private fun ThemeColorBall(
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = option.label,
-            style = MaterialTheme.typography.labelSmall,
-            color = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant
+            style = MiuixTheme.textStyles.footnote2,
+            color = if (selected) MiuixTheme.colorScheme.primary
+            else MiuixTheme.colorScheme.onSurfaceVariantSummary
         )
     }
 }
@@ -680,12 +601,22 @@ private fun CustomThemeColorBall(
             .semantics { contentDescription = "自定义主题" }
             .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
     ) {
-        Card(
-            onClick = onClick,
-            modifier = Modifier.size(64.dp),
-            shape = RoundedCornerShape(16.dp),
-            border = if (selected) BorderStroke(borderWidth, MaterialTheme.colorScheme.primary) else null,
-            colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer)
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(scheme.surfaceContainer)
+                .then(
+                    if (selected) {
+                        Modifier.border(
+                            borderWidth,
+                            MiuixTheme.colorScheme.primary,
+                            RoundedCornerShape(16.dp)
+                        )
+                    } else {
+                        Modifier
+                    }
+                )
         ) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Box(
@@ -734,9 +665,9 @@ private fun CustomThemeColorBall(
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "自定义",
-            style = MaterialTheme.typography.labelSmall,
-            color = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant
+            style = MiuixTheme.textStyles.footnote2,
+            color = if (selected) MiuixTheme.colorScheme.primary
+            else MiuixTheme.colorScheme.onSurfaceVariantSummary
         )
     }
 }
@@ -754,35 +685,40 @@ private fun CustomThemeColorDialog(
 
     val currentColor = Color(red, green, blue)
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("自定义主题色") },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(currentColor)
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                ColorChannelSlider(label = "红", value = red, tint = Color(0xFFFF5252), onValueChange = { red = it })
-                ColorChannelSlider(label = "绿", value = green, tint = Color(0xFF69F0AE), onValueChange = { green = it })
-                ColorChannelSlider(label = "蓝", value = blue, tint = Color(0xFF40C4FF), onValueChange = { blue = it })
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(currentColor) }) { Text("应用") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
-        }
-    )
+    MiuixAlertDialog(
+        show = true,
+        title = "自定义主题色",
+        confirmText = "应用",
+        onConfirm = { onConfirm(currentColor) },
+        onDismissRequest = onDismiss
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(currentColor)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        ColorChannelSlider(
+            label = "红",
+            value = red,
+            tint = Color(0xFFFF5252),
+            onValueChange = { red = it }
+        )
+        ColorChannelSlider(
+            label = "绿",
+            value = green,
+            tint = Color(0xFF69F0AE),
+            onValueChange = { green = it }
+        )
+        ColorChannelSlider(
+            label = "蓝",
+            value = blue,
+            tint = Color(0xFF40C4FF),
+            onValueChange = { blue = it }
+        )
+    }
 }
 
 @Composable
@@ -795,26 +731,26 @@ private fun ColorChannelSlider(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(24.dp)
+            style = MiuixTheme.textStyles.footnote1,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            modifier = Modifier.width(20.dp)
         )
-        Slider(
+        MiuixSlider(
             value = value,
             onValueChange = onValueChange,
             valueRange = 0f..1f,
-            modifier = Modifier.weight(1f),
-            colors = SliderDefaults.colors(thumbColor = tint, activeTrackColor = tint)
+            activeColor = tint,
+            modifier = Modifier.weight(1f)
         )
         Text(
             text = "${(value * 255f).roundToInt()}",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             textAlign = TextAlign.End,
             modifier = Modifier.width(36.dp)
         )
@@ -823,114 +759,115 @@ private fun ColorChannelSlider(
 
 @Composable
 private fun ConversationListPreview(squareAvatar: Boolean, mergeSticky: Boolean) {
-    val scheme = MaterialTheme.colorScheme
+    val scheme = MiuixTheme.colorScheme
+    val shape = RoundedCornerShape(20.dp)
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Card(
-            modifier = Modifier.width(240.dp),
-            shape = MaterialTheme.shapes.extraLarge,
-            border = BorderStroke(1.dp, scheme.outlineVariant.copy(alpha = 0.5f)),
-            colors = CardDefaults.cardColors(containerColor = scheme.surface)
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .width(240.dp)
+            .clip(shape)
+            .background(scheme.surface)
+            .border(1.dp, scheme.outline.copy(alpha = 0.4f), shape)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "消息",
+                    style = MiuixTheme.textStyles.body1,
+                    color = scheme.onSurface
+                )
+                Spacer(Modifier.weight(1f))
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(scheme.primaryContainer)
+                )
+            }
+            HorizontalDivider()
+            if (!mergeSticky) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("消息", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
-                    Spacer(Modifier.weight(1f))
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(CircleShape)
-                            .background(scheme.primaryContainer)
+                    ConversationPreviewAvatar(
+                        name = "设计团队",
+                        avatarColor = scheme.primaryContainer,
+                        avatarContentColor = scheme.onPrimaryContainer,
+                        squareAvatar = squareAvatar
+                    )
+                    ConversationPreviewAvatar(
+                        name = "项目组",
+                        avatarColor = scheme.tertiaryContainer,
+                        avatarContentColor = scheme.onTertiaryContainer,
+                        squareAvatar = squareAvatar
                     )
                 }
-                HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.5f))
-                if (!mergeSticky) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        ConversationPreviewAvatar(
-                            name = "设计团队",
-                            avatarColor = scheme.primaryContainer,
-                            avatarContentColor = scheme.onPrimaryContainer,
-                            squareAvatar = squareAvatar
-                        )
-                        ConversationPreviewAvatar(
-                            name = "项目组",
-                            avatarColor = scheme.tertiaryContainer,
-                            avatarContentColor = scheme.onTertiaryContainer,
-                            squareAvatar = squareAvatar
-                        )
-                    }
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        color = scheme.outlineVariant.copy(alpha = 0.5f)
-                    )
-                }
-                ConversationPreviewItem(
-                    name = "设计团队",
-                    message = "明天上午十点开会",
-                    time = "10:24",
-                    unread = 3,
-                    avatarColor = scheme.primaryContainer,
-                    avatarContentColor = scheme.onPrimaryContainer,
-                    squareAvatar = squareAvatar,
-                    isSticky = mergeSticky
-                )
-                ConversationPreviewItem(
-                    name = "项目组",
-                    message = "[图片]",
-                    time = "昨天",
-                    unread = 12,
-                    avatarColor = scheme.tertiaryContainer,
-                    avatarContentColor = scheme.onTertiaryContainer,
-                    squareAvatar = squareAvatar,
-                    isSticky = mergeSticky
-                )
-                ConversationPreviewItem(
-                    name = "Alex",
-                    message = "好的，收到 👍",
-                    time = "09:15",
-                    unread = 0,
-                    avatarColor = scheme.secondaryContainer,
-                    avatarContentColor = scheme.onSecondaryContainer,
-                    squareAvatar = squareAvatar,
-                    isSticky = false
-                )
-                Spacer(Modifier.height(16.dp))
-                Row(
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+            }
+            ConversationPreviewItem(
+                name = "设计团队",
+                message = "明天上午十点开会",
+                time = "10:24",
+                unread = 3,
+                avatarColor = scheme.primaryContainer,
+                avatarContentColor = scheme.onPrimaryContainer,
+                squareAvatar = squareAvatar,
+                isSticky = mergeSticky
+            )
+            ConversationPreviewItem(
+                name = "项目组",
+                message = "[图片]",
+                time = "昨天",
+                unread = 12,
+                avatarColor = scheme.tertiaryContainer,
+                avatarContentColor = scheme.onTertiaryContainer,
+                squareAvatar = squareAvatar,
+                isSticky = mergeSticky
+            )
+            ConversationPreviewItem(
+                name = "Alex",
+                message = "好的，收到 👍",
+                time = "09:15",
+                unread = 0,
+                avatarColor = scheme.secondaryContainer,
+                avatarContentColor = scheme.onSecondaryContainer,
+                squareAvatar = squareAvatar,
+                isSticky = false
+            )
+            Spacer(Modifier.height(16.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 32.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clip(CircleShape)
-                            .background(scheme.primary)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clip(CircleShape)
-                            .background(scheme.outlineVariant)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clip(CircleShape)
-                            .background(scheme.outlineVariant)
-                    )
-                }
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .background(scheme.primary)
+                )
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .background(scheme.surfaceContainerHigh)
+                )
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .background(scheme.surfaceContainerHigh)
+                )
             }
         }
     }
@@ -962,8 +899,8 @@ private fun ConversationPreviewAvatar(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = name,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -982,18 +919,18 @@ private fun ConversationPreviewItem(
     isSticky: Boolean
 ) {
     val themeColor by UiState.themeColor
-    val scheme = MaterialTheme.colorScheme
+    val scheme = MiuixTheme.colorScheme
     val avatarShape = if (squareAvatar) RoundedCornerShape(8.dp) else CircleShape
+    val rowColor = when {
+        isSticky && themeColor != "WHITE" -> scheme.surfaceContainerHigh
+        !isSticky && themeColor == "WHITE" -> scheme.surfaceContainerHigh
+        else -> scheme.surface
+    }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                if ((isSticky && themeColor != "WHITE") || (!isSticky && themeColor == "WHITE"))
-                    MaterialTheme.colorScheme.surfaceContainerHigh
-                else
-                    MaterialTheme.colorScheme.surface
-            )
+            .background(rowColor)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1015,7 +952,7 @@ private fun ConversationPreviewItem(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = name,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MiuixTheme.textStyles.body1,
                 color = scheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -1023,8 +960,8 @@ private fun ConversationPreviewItem(
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = message,
-                style = MaterialTheme.typography.bodySmall,
-                color = scheme.onSurfaceVariant,
+                style = MiuixTheme.textStyles.footnote1,
+                color = scheme.onSurfaceVariantSummary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -1033,25 +970,12 @@ private fun ConversationPreviewItem(
         Column(horizontalAlignment = Alignment.End) {
             Text(
                 text = time,
-                style = MaterialTheme.typography.labelSmall,
-                color = scheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.footnote2,
+                color = scheme.onSurfaceVariantSummary
             )
             if (unread > 0) {
                 Spacer(modifier = Modifier.height(4.dp))
-                Box(
-                    modifier = Modifier
-                        .defaultMinSize(minWidth = 16.dp, minHeight = 16.dp)
-                        .clip(CircleShape)
-                        .background(scheme.error),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = if (unread > 99) "99+" else unread.toString(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = scheme.onError,
-                        modifier = Modifier.padding(horizontal = 4.dp)
-                    )
-                }
+                UnreadCountBadge(count = unread)
             }
         }
     }

@@ -6,13 +6,15 @@ import android.content.Intent
 import android.net.Uri
 import android.os.PowerManager
 import android.provider.Settings
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.juhao.murexide.datastore.SettingsStorage
@@ -20,8 +22,10 @@ import com.juhao.murexide.network.WebSocketManager
 import com.juhao.murexide.ui.components.*
 import com.juhao.murexide.ui.icons.AppIcons
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WebSocketControl(
     highlightId: String? = null,
@@ -49,11 +53,6 @@ fun WebSocketControl(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val (cardBgColor, cardTextColor) = if (connected)
-        Pair(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
-    else
-        Pair(MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
-
     val allIds = listOf("header_ws", "ws_status", "header_ws_settings", "ws_enable", "ws_battery", "ws_reconnect")
     val listState = rememberLazyListState()
     LaunchedEffect(highlightId, allIds) {
@@ -74,31 +73,49 @@ fun WebSocketControl(
         item { SettingsGroupHeader("状态") }
         item {
             SettingsGroupSurface(isTop = true, isBottom = true, id = "ws_status", highlightId = highlightId) {
-                Surface(color = cardBgColor, contentColor = cardTextColor) {
-                    Column(
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .size(64.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (connected) MiuixTheme.colorScheme.primary
+                                else MiuixTheme.colorScheme.error
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Surface(
-                            modifier = Modifier.size(64.dp),
-                            shape = MaterialShapes.Pill.toShape(),
-                            color = if (connected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
-                        ) {
-                            Icon(
-                                imageVector = if (connected) AppIcons.Check else AppIcons.Close,
-                                contentDescription = null,
-                                modifier = Modifier.requiredSize(32.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = if (connected) "连接正常" else "连接已断开",
-                            style = MaterialTheme.typography.bodyLarge
+                        Icon(
+                            imageVector = if (connected) AppIcons.Check else AppIcons.Close,
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp),
+                            tint = if (connected) {
+                                MiuixTheme.colorScheme.onPrimary
+                            } else {
+                                MiuixTheme.colorScheme.onError
+                            }
                         )
                     }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = if (connected) "连接正常" else "连接已断开",
+                        style = MiuixTheme.textStyles.body1,
+                        color = if (connected) {
+                            MiuixTheme.colorScheme.onSurfaceContainer
+                        } else {
+                            MiuixTheme.colorScheme.error
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = if (connected) "WebSocket 已建立，可接收实时消息" else "正在等待重新连接",
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceContainerVariant
+                    )
                 }
             }
         }

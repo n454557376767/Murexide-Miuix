@@ -1,13 +1,16 @@
 package com.juhao.murexide.ui.settings
 
 import android.content.Intent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -19,8 +22,10 @@ import com.juhao.murexide.utils.UpdateInfo
 import com.juhao.murexide.utils.checkForUpdateWithDetails
 import com.juhao.murexide.utils.getAppVersionInfo
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun UpdateControl(
     highlightId: String? = null,
@@ -57,11 +62,6 @@ fun UpdateControl(
     val currentVersion = context.getAppVersionInfo().versionName
     val shouldUpdate = updateInfo?.shouldUpdate == true
 
-    val (cardBgColor, cardTextColor) = if (shouldUpdate)
-        Pair(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
-    else
-        Pair(MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
-
     val subtitle = buildString {
         appendLine("最新版本: $newestVersion")
         append("当前版本: $currentVersion")
@@ -92,67 +92,71 @@ fun UpdateControl(
         item {
             SettingsGroupSurface(isTop = true, isBottom = true, id = "update_status", highlightId = highlightId) {
                 if (updateEnabled) {
-                    Surface(
-                        color = cardBgColor,
-                        contentColor = cardTextColor,
-                        onClick = {
-                            if (shouldUpdate) {
-                                context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, updateInfo?.releaseUrl?.toUri())
-                                )
-                            } else {
-                                check()
-                            }
-                        }
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            if (loading) {
-                                ContainedLoadingIndicator(Modifier.size(64.dp))
-                            } else {
-                                Surface(
-                                    modifier = Modifier.size(64.dp),
-                                    shape = MaterialShapes.Pill.toShape(),
-                                    color = if (shouldUpdate)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        MaterialTheme.colorScheme.tertiary
-                                ) {
-                                    Icon(
-                                        imageVector = if (shouldUpdate) AppIcons.Download else AppIcons.Check,
-                                        contentDescription = null,
-                                        modifier = Modifier.requiredSize(32.dp)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                if (shouldUpdate) {
+                                    context.startActivity(
+                                        Intent(Intent.ACTION_VIEW, updateInfo?.releaseUrl?.toUri())
                                     )
+                                } else {
+                                    check()
                                 }
                             }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = when {
-                                    loading -> "正在检测更新"
-                                    shouldUpdate -> "更新可用"
-                                    else -> "已是最新版本"
-                                },
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = subtitle,
-                                style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            if (!loading && !shouldUpdate) {
+                            .padding(horizontal = 16.dp, vertical = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (loading) {
+                            MiuixLoadingIndicator(size = 56.dp)
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (shouldUpdate) MiuixTheme.colorScheme.primary
+                                        else MiuixTheme.colorScheme.surfaceContainerHigh
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Icon(
-                                    AppIcons.Refresh,
+                                    imageVector = if (shouldUpdate) AppIcons.Download else AppIcons.Check,
                                     contentDescription = null,
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(32.dp),
+                                    tint = if (shouldUpdate) {
+                                        MiuixTheme.colorScheme.onPrimary
+                                    } else {
+                                        MiuixTheme.colorScheme.onSurfaceContainer
+                                    }
                                 )
                             }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = when {
+                                loading -> "正在检测更新"
+                                shouldUpdate -> "更新可用"
+                                else -> "已是最新版本"
+                            },
+                            style = MiuixTheme.textStyles.body1,
+                            color = MiuixTheme.colorScheme.onSurfaceContainer
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = subtitle,
+                            style = MiuixTheme.textStyles.footnote1,
+                            color = MiuixTheme.colorScheme.onSurfaceContainerVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        if (!loading && !shouldUpdate) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Icon(
+                                imageVector = AppIcons.Refresh,
+                                contentDescription = "重新检测",
+                                modifier = Modifier.size(20.dp),
+                                tint = MiuixTheme.colorScheme.onSurfaceVariantActions
+                            )
                         }
                     }
                 } else {

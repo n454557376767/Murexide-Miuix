@@ -5,13 +5,10 @@ import com.juhao.murexide.ui.icons.AppIcons
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.juhao.murexide.data.MessageItem
 import com.juhao.murexide.data.MessageTag
@@ -20,7 +17,6 @@ import com.juhao.murexide.ui.chat.components.MessageBubble
 import com.juhao.murexide.ui.components.*
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BubbleControl(
     highlightId: String? = null,
@@ -146,125 +142,37 @@ fun BubbleControl(
         item { SettingsGroupHeader("气泡样式") }
         item {
             SettingsGroupSurface(isTop = true, isBottom = false, id = "bubble_corner", highlightId = highlightId) {
-                CustomItemCell {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    AppIcons.RoundedCorner,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text("气泡圆角", style = MaterialTheme.typography.bodyMedium)
-                            }
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = MaterialTheme.colorScheme.secondaryContainer
-                            ) {
-                                Text(
-                                    text = "${bubbleCornerRadius.toInt()}dp",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Slider(
-                            value = bubbleCornerRadius,
-                            onValueChange = { bubbleCornerRadius = it },
-                            onValueChangeFinished = {
-                                scope.launch { settingsStorage.setBubbleCornerRadius(bubbleCornerRadius) }
-                            },
-                            valueRange = 0f..24f,
-                            steps = 23,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                "0dp",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                "24dp",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
+                SettingsSliderItem(
+                    title = "气泡圆角",
+                    valueText = "${bubbleCornerRadius.toInt()}dp",
+                    value = bubbleCornerRadius,
+                    onValueChange = { bubbleCornerRadius = it },
+                    onValueChangeFinished = {
+                        scope.launch { settingsStorage.setBubbleCornerRadius(bubbleCornerRadius) }
+                    },
+                    icon = AppIcons.RoundedCorner,
+                    valueRange = 0f..24f,
+                    steps = 23,
+                    startLabel = "0dp",
+                    endLabel = "24dp"
+                )
             }
         }
         item {
             SettingsGroupSurface(isTop = false, isBottom = false, id = "bubble_opacity", highlightId = highlightId) {
-                CustomItemCell {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    AppIcons.Opacity,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text("气泡不透明度", style = MaterialTheme.typography.bodyMedium)
-                            }
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = MaterialTheme.colorScheme.secondaryContainer
-                            ) {
-                                Text(
-                                    text = "${(bubbleOpacity * 100).toInt()}%",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Slider(
-                            value = bubbleOpacity,
-                            onValueChange = { bubbleOpacity = it },
-                            onValueChangeFinished = {
-                                scope.launch { settingsStorage.setBubbleOpacity(bubbleOpacity) }
-                            },
-                            valueRange = 0.4f..1f,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                "40%",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                "100%",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
+                SettingsSliderItem(
+                    title = "气泡不透明度",
+                    valueText = "${(bubbleOpacity * 100).toInt()}%",
+                    value = bubbleOpacity,
+                    onValueChange = { bubbleOpacity = it },
+                    onValueChangeFinished = {
+                        scope.launch { settingsStorage.setBubbleOpacity(bubbleOpacity) }
+                    },
+                    icon = AppIcons.Opacity,
+                    valueRange = 0.4f..1f,
+                    startLabel = "40%",
+                    endLabel = "100%"
+                )
             }
         }
         item {

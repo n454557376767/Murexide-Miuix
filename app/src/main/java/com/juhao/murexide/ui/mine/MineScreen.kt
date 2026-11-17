@@ -10,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,7 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import java.text.NumberFormat
@@ -162,12 +160,9 @@ fun UploadProgressDialog(progress: Float) {
                     color = MiuixTheme.colorScheme.onSurfaceContainer
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier.fillMaxWidth(),
-                    strokeCap = StrokeCap.Round,
-                    color = MiuixTheme.colorScheme.primary,
-                    trackColor = MiuixTheme.colorScheme.secondaryContainer
+                MiuixLinearProgress(
+                    progress = progress,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(

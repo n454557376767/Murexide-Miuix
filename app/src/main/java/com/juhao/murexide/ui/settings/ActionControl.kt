@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -35,8 +34,9 @@ import com.juhao.murexide.datastore.SettingsStorage
 import com.juhao.murexide.ui.components.*
 import com.juhao.murexide.utils.hasLegacyWritePermission
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActionControl(
     highlightId: String? = null,
@@ -304,23 +304,19 @@ fun ActionControl(
     }
 
     if (showDisableLockConfirm) {
-        AlertDialog(
-            onDismissRequest = { showDisableLockConfirm = false },
-            title = { Text("关闭应用锁") },
-            icon = { Icon(AppIcons.Info, contentDescription = null) },
-            text = { Text("关闭后启动应用将不再需要密码。确定关闭吗？") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showDisableLockConfirm = false
-                    scope.launch {
-                        settingsStorage.clearAppLock()
-                        refreshAppLock()
-                    }
-                }) { Text("确认关闭") }
+        MiuixAlertDialog(
+            show = showDisableLockConfirm,
+            title = "关闭应用锁",
+            summary = "关闭后启动应用将不再需要密码。确定关闭吗？",
+            confirmText = "确认关闭",
+            onConfirm = {
+                showDisableLockConfirm = false
+                scope.launch {
+                    settingsStorage.clearAppLock()
+                    refreshAppLock()
+                }
             },
-            dismissButton = {
-                TextButton(onClick = { showDisableLockConfirm = false }) { Text("取消") }
-            }
+            onDismissRequest = { showDisableLockConfirm = false }
         )
     }
 }
@@ -334,43 +330,45 @@ private fun SetAppLockPinDialog(
     var confirm by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("设置应用锁密码") },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = pin,
-                    onValueChange = { pin = it.filter { c -> c.isDigit() }.take(12); error = null },
-                    label = { Text("新密码（至少 4 位数字）") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = confirm,
-                    onValueChange = { confirm = it.filter { c -> c.isDigit() }.take(12); error = null },
-                    label = { Text("确认密码") },
-                    singleLine = true,
-                    isError = error != null,
-                    supportingText = error?.let { { Text(it) } },
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+    MiuixAlertDialog(
+        show = true,
+        title = "设置应用锁密码",
+        confirmText = "保存",
+        onConfirm = {
+            if (pin.length < 4) error = "密码至少 4 位"
+            else if (pin != confirm) error = "两次输入不一致"
+            else onConfirm(pin)
         },
-        confirmButton = {
-            TextButton(onClick = {
-                if (pin.length < 4) error = "密码至少 4 位"
-                else if (pin != confirm) error = "两次输入不一致"
-                else onConfirm(pin)
-            }) { Text("保存") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+        onDismissRequest = onDismiss
+    ) {
+        MiuixTextField(
+            value = pin,
+            onValueChange = { input ->
+                pin = input.filter { it.isDigit() }.take(12)
+                error = null
+            },
+            placeholder = "新密码（至少 4 位数字）",
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        MiuixTextField(
+            value = confirm,
+            onValueChange = { input ->
+                confirm = input.filter { it.isDigit() }.take(12)
+                error = null
+            },
+            placeholder = "确认密码",
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
+        )
+        error?.let { message ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = message,
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.error
+            )
         }
-    )
+    }
 }

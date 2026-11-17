@@ -670,7 +670,7 @@ private fun NewMessagesScreen(
                 ) {
                     if (uiState.isRequestsLoading) {
                         item(key = "request_loading") {
-                            LinearProgressIndicator(
+                            MiuixIndeterminateLinearProgress(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 8.dp)
