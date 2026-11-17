@@ -64,8 +64,8 @@ fun MineScreen(
         }
     }
 
-    StyledScaffold(
-        title = { Text("我的") },
+    MiuixPageScaffold(
+        title = "我的",
         actions = {
             IconButton(onClick = onSettingsClick) {
                 Icon(AppIcons.Settings, contentDescription = "设置")

@@ -70,6 +70,9 @@ fun AppearanceControl(
     val squareAvatar by UiState.squareAvatar
 
     val liquidGlassEnabled by settingsStorage.liquidGlassEnabledFlow.collectAsState(initial = false)
+    val monetMode by settingsStorage.miuixMonetModeFlow.collectAsState(
+        initial = com.juhao.murexide.ui.theme.UiState.miuixMonetMode.value
+    )
     var liquidGlassBlur by remember { mutableFloatStateOf(1f) }
     val showBackground by settingsStorage.showBackgroundFlow.collectAsState(initial = true)
     var backgroundOpacity by remember { mutableFloatStateOf(0.5f) }
@@ -215,6 +218,21 @@ fun AppearanceControl(
                         scope.launch { settingsStorage.setThemeColor(selected) }
                     },
                     onCustomClick = { showCustomColorDialog = true }
+                )
+            }
+        }
+        item {
+            SettingsGroupSurface(isTop = false, isBottom = false, id = "appearance_monet", highlightId = highlightId) {
+                SettingsDropdownItem(
+                    icon = AppIcons.Palette,
+                    title = "莫奈调色板",
+                    subtitle = "关闭后使用 Miuix 默认配色；开启后由主题色或壁纸生成整套配色",
+                    options = com.juhao.murexide.ui.theme.MIUIX_MONET_OPTIONS,
+                    selectedValue = monetMode,
+                    onOptionSelected = { value ->
+                        com.juhao.murexide.ui.theme.UiState.miuixMonetMode.value = value
+                        scope.launch { settingsStorage.setMiuixMonetMode(value) }
+                    }
                 )
             }
         }

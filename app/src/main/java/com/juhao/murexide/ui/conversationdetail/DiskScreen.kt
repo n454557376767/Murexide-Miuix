@@ -122,16 +122,10 @@ fun DiskScreen(
         viewModel.goBack()
     }
 
-    StyledScaffold(
-        title = {
-            Text(
-                if (state.folderStack.isEmpty()) "群云盘"
-                else state.folderStack.last().second
-            )
-        },
-        subtitle = {
-            Text(text = "已用 ${formatSize(state.totalSize)}")
-        },
+    MiuixPageScaffold(
+        title = if (state.folderStack.isEmpty()) "群云盘"
+        else state.folderStack.last().second,
+        subtitle = "已用 ${formatSize(state.totalSize)}",
         navigationIcon = {
             IconButton(onClick = {
                 if (!viewModel.goBack()) onBack()
@@ -146,8 +140,10 @@ fun DiskScreen(
             IconButton(onClick = { uploadPicker.launch("*/*") }) {
                 Icon(AppIcons.AttachFile, contentDescription = "上传文件")
             }
-        },
-        extraContent = {
+        }
+    ) { padding ->
+        Column(Modifier.fillMaxSize()) {
+            // 旧实现放在顶栏 extraContent 里，Miuix 顶栏没有该槽位，下移到内容区顶部
             DiskBreadcrumb(
                 folderStack = state.folderStack,
                 onRootClick = { viewModel.jumpTo(0L, emptyList()) },
@@ -158,9 +154,6 @@ fun DiskScreen(
                 },
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )
-        }
-    ) { padding ->
-        Column(Modifier.fillMaxSize()) {
             when {
                 state.isLoading && state.files.isEmpty() -> Box(
                     Modifier.fillMaxSize().padding(padding), Alignment.Center

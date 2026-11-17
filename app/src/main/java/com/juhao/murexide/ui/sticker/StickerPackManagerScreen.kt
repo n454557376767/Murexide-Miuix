@@ -132,13 +132,9 @@ fun StickerPackManagerScreen(
         }
     }
 
-    StyledScaffold(
-        title = { Text("管理表情包") },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(AppIcons.ArrowBack, contentDescription = "返回")
-            }
-        },
+    MiuixPageScaffold(
+        title = "管理表情包",
+        onBack = onBack,
         actions = {
             IconButton(onClick = { showCreateDialog = true }) {
                 Icon(AppIcons.Add, contentDescription = "新建表情包")

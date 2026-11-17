@@ -23,6 +23,7 @@ class SettingsStorage(private val context: Context) {
     companion object {
         private val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
         private val THEME_COLOR_KEY = stringPreferencesKey("theme_color")
+        private val MIUIX_MONET_MODE_KEY = stringPreferencesKey("miuix_monet_mode")
         private val NOTIFICATION_ENABLED_KEY = booleanPreferencesKey("notification_enabled")
         private val SQUARE_AVATAR_KEY = booleanPreferencesKey("square_avatar")
         private val BIG_SCREEN_KEY = booleanPreferencesKey("big_screen")
@@ -72,6 +73,16 @@ class SettingsStorage(private val context: Context) {
     val themeColorFlow = preferenceFlow(THEME_COLOR_KEY, "DYNAMIC")
     suspend fun getThemeColor() = getPreference(THEME_COLOR_KEY, "DYNAMIC")
     suspend fun setThemeColor(mode: String) = setPreference(THEME_COLOR_KEY, mode)
+
+    /**
+     * Miuix 莫奈（Monet）调色板模式：
+     * - "off" 关闭：使用 Miuix 默认调色板（lightColorScheme/darkColorScheme）
+     * - "theme" 跟随主题色：用当前调色板主色作为种子生成
+     * - "wallpaper" 跟随系统壁纸：种子为 null，由系统壁纸取色
+     */
+    val miuixMonetModeFlow = preferenceFlow(MIUIX_MONET_MODE_KEY, "theme")
+    suspend fun getMiuixMonetMode() = getPreference(MIUIX_MONET_MODE_KEY, "theme")
+    suspend fun setMiuixMonetMode(mode: String) = setPreference(MIUIX_MONET_MODE_KEY, mode)
 
     val squareAvatarFlow = preferenceFlow(SQUARE_AVATAR_KEY, false)
     suspend fun getSquareAvatar() = getPreference(SQUARE_AVATAR_KEY, false)

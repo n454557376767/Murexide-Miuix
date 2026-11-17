@@ -7,6 +7,9 @@ import com.juhao.murexide.data.StickyItem
 object UiState {
     var themeMode = mutableStateOf("system")
     var themeColor = mutableStateOf("DYNAMIC")
+
+    /** Miuix 莫奈调色板模式："off" / "theme" / "wallpaper" */
+    var miuixMonetMode = mutableStateOf("theme")
     var squareAvatar = mutableStateOf(false)
 }
 

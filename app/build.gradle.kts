@@ -101,6 +101,10 @@ dependencies {
     implementation(libs.navigation.compose)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
 
+    // Miuix — HyperOS 设计语言组件
+    implementation(libs.miuix.ui)
+    implementation(libs.miuix.preference)
+
     implementation(libs.okhttp)
 
     implementation(libs.kotlinx.serialization.json)

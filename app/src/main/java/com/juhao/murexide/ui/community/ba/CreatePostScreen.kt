@@ -122,23 +122,19 @@ fun CreatePostScreen(
         }
     }
 
-    StyledScaffold(
+    MiuixPageScaffold(
         modifier = Modifier.imePadding(),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        title = {
-            Text(
-                when {
-                    isEditMode -> "编辑文章"
-                    baName.isNotEmpty() -> "发布到 $baName"
-                    else -> "发布文章"
-                }
-            )
+        title = when {
+            isEditMode -> "编辑文章"
+            baName.isNotEmpty() -> "发布到 $baName"
+            else -> "发布文章"
         },
         navigationIcon = {
             IconButton(onClick = onClose) {
                 Icon(AppIcons.Close, contentDescription = "关闭")
             }
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             BottomAppBar(
                 actions = {

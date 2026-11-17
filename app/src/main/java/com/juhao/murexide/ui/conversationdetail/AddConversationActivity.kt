@@ -111,13 +111,9 @@ private fun NewConversationScreen(
     val currentOption = chatTypeOptions.firstOrNull { it.type == selectedType } ?: chatTypeOptions.first()
     val trimmedId = chatId.trim()
 
-    StyledScaffold(
-        title = { Text("添加会话") },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                AutoMirroredIcon(AppIcons.ArrowBack, contentDescription = "返回")
-            }
-        }
+    MiuixPageScaffold(
+        title = "添加会话",
+        onBack = onBack
     ) { padding ->
         Column(
             modifier = Modifier

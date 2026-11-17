@@ -641,18 +641,14 @@ private fun NewMessagesScreen(
         )
     }
 
-    StyledScaffold(
+    MiuixPageScaffold(
+        title = "新消息",
+        onBack = onBack,
         snackbarHost = {
             SnackbarHost(
                 snackbarHostState,
                 modifier = Modifier.padding(innerPadding)
             )
-        },
-        title = { Text("新消息") },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                AutoMirroredIcon(AppIcons.ArrowBack, contentDescription = "返回通讯录")
-            }
         },
         actions = {
             IconButton(onClick = onRefresh, enabled = !uiState.isRequestsLoading) {

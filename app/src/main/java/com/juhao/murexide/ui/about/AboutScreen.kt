@@ -22,11 +22,13 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -42,6 +44,7 @@ import com.juhao.murexide.R
 import com.juhao.murexide.ui.components.*
 import com.juhao.murexide.utils.getAppVersionInfo
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
@@ -108,13 +111,9 @@ fun AboutScreen(
         }
     }
 
-    StyledScaffold(
-        title = { Text("关于") },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                AutoMirroredIcon(AppIcons.ArrowBack, contentDescription = "返回")
-            }
-        }
+    MiuixPageScaffold(
+        title = "关于",
+        onBack = onBack
     ) { padding ->
         Column(
             modifier = Modifier
@@ -195,9 +194,9 @@ fun AboutScreen(
                                 .background(
                                     brush = Brush.radialGradient(
                                         colors = listOf(
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.55f),
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0f)
+                                            MiuixTheme.colorScheme.primary.copy(alpha = 0.55f),
+                                            MiuixTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                            MiuixTheme.colorScheme.primary.copy(alpha = 0f)
                                         )
                                     ),
                                     shape = CircleShape
@@ -215,7 +214,7 @@ fun AboutScreen(
                                     translationY = offsetY
                                 }
                                 .background(
-                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = surfaceAlpha),
+                                    color = MiuixTheme.colorScheme.primaryContainer.copy(alpha = surfaceAlpha),
                                     shape = MaterialShapes.Cookie12Sided.toShape()
                                 )
                         ) {
@@ -233,13 +232,13 @@ fun AboutScreen(
                                     translationX = offsetX
                                     translationY = offsetY
                                 },
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            tint = MiuixTheme.colorScheme.onPrimaryContainer
                         )
 
                         if (burstProgress.value > 0f) {
                             BurstOverlay(
                                 progress = burstProgress.value,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = MiuixTheme.colorScheme.primary,
                                 offsetX = offsetX,
                                 offsetY = offsetY
                             )
@@ -251,32 +250,32 @@ fun AboutScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = stringResource(R.string.app_name),
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
+                            style = MiuixTheme.textStyles.title2
                         )
                         Spacer(modifier = Modifier.height(6.dp))
-                        Surface(
-                            shape = MaterialTheme.shapes.small,
-                            color = MaterialTheme.colorScheme.primaryContainer
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(MiuixTheme.colorScheme.primaryContainer)
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
                         ) {
                             Text(
                                 text = versionInfo.versionName,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                style = MiuixTheme.textStyles.footnote1,
+                                color = MiuixTheme.colorScheme.onPrimaryContainer
                             )
                         }
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = "为云湖而生的原生体验",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MiuixTheme.textStyles.body1,
+                            color = MiuixTheme.colorScheme.onBackgroundVariant
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "versionCode ${versionInfo.versionCode}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MiuixTheme.textStyles.footnote2,
+                            color = MiuixTheme.colorScheme.onBackgroundVariant
                         )
                     }
                 }

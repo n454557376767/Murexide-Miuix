@@ -141,8 +141,8 @@ fun EditProfileScreen(
         )
     }
 
-    StyledScaffold(
-        title = { Text("编辑资料") },
+    MiuixPageScaffold(
+        title = "编辑资料",
         navigationIcon = {
             IconButton(onClick = onBackClick, enabled = !isSaving) {
                 AutoMirroredIcon(AppIcons.ArrowBack, contentDescription = "返回")

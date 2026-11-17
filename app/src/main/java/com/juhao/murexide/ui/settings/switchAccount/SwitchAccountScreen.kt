@@ -57,13 +57,9 @@ fun Greeting(
     val accounts = accountStorage.userAccountsFlow.collectAsState(initial = emptyList()).value
     val currentAccount = accountStorage.currentTokenFlow.collectAsState(initial = "").value
 
-    StyledScaffold(
-        title = { Text(if (isChooseMode) "现有账号" else "切换账号") },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                AutoMirroredIcon(AppIcons.ArrowBack, contentDescription = "返回")
-            }
-        }
+    MiuixPageScaffold(
+        title = if (isChooseMode) "现有账号" else "切换账号",
+        onBack = onBack
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),

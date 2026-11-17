@@ -27,6 +27,7 @@ testRunner = "1.7.0"
 uiautomator = "2.4.0"
 material3 = "1.5.0-alpha29"
 materialSymbols = "2.2.1"
+miuix = "0.9.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -88,6 +89,10 @@ haze-blur-materials = { module = "dev.chrisbanes.haze:haze-blur-materials", vers
 # Liquid glass rendering
 backdrop = { module = "io.github.kyant0:backdrop", version.ref = "backdrop" }
 kyant-shapes = { module = "io.github.kyant0:shapes", version.ref = "kyantShapes" }
+
+# Miuix (HyperOS design language)
+miuix-ui = { module = "top.yukonga.miuix.kmp:miuix-ui-android", version.ref = "miuix" }
+miuix-preference = { module = "top.yukonga.miuix.kmp:miuix-preference-android", version.ref = "miuix" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -32,6 +32,10 @@ import com.juhao.murexide.plugin.PluginManagerActivity
 import com.juhao.murexide.ui.settings.chatbackground.ChatBackgroundActivity
 import com.juhao.murexide.ui.settings.userbot.UserBotActivity
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private fun resolvePluginIcon(name: String?): ImageVector = when (name) {
     "Info" -> AppIcons.Info
@@ -81,13 +85,9 @@ fun SettingsScreen(
             }
         )
     } else {
-        StyledScaffold(
-            title = { Text(SettingsPageTitles[page] ?: "设置") },
-            navigationIcon = {
-                IconButton(onClick = onBack) {
-                    AutoMirroredIcon(AppIcons.ArrowBack, contentDescription = "返回")
-                }
-            },
+        MiuixPageScaffold(
+            title = SettingsPageTitles[page] ?: "设置",
+            onBack = onBack,
             actions = {
                 IconButton(onClick = {
                     searchScope.launch {
@@ -167,12 +167,13 @@ fun SettingsScreen(
                                 AppIcons.Search,
                                 contentDescription = null,
                                 modifier = Modifier.size(48.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 "未找到相关设置",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                style = MiuixTheme.textStyles.body1,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                             )
                         }
                     }
@@ -228,13 +229,9 @@ private fun SettingsHomeScreen(
 
     LaunchedEffect(Unit) { currentAccount = accountStorage.getCurrentAccount() }
 
-    StyledScaffold(
-        title = { Text("设置") },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                AutoMirroredIcon(AppIcons.ArrowBack, contentDescription = "返回")
-            }
-        },
+    MiuixPageScaffold(
+        title = "设置",
+        onBack = onBack,
         actions = {
             IconButton(onClick = onOpenSearch) {
                 Icon(AppIcons.Search, contentDescription = "搜索")
@@ -250,34 +247,35 @@ private fun SettingsHomeScreen(
         ) {
             currentAccount?.let { account ->
                 item(key = "account_card") {
-                    Box(
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .clip(RoundedCornerShape(28.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainer)
-                            .padding(16.dp)
+                            .padding(horizontal = 12.dp)
+                            .padding(bottom = 12.dp),
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Avatar(url = account.avatar, size = 64.dp)
                             Spacer(Modifier.width(12.dp))
                             Column(Modifier.weight(1f)) {
                                 Text(
                                     account.username,
-                                    style = MaterialTheme.typography.titleLarge,
+                                    style = MiuixTheme.textStyles.title3,
                                     maxLines = 1,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = MiuixTheme.colorScheme.onSurfaceContainer
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(
                                     "ID: ${account.id}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                    style = MiuixTheme.textStyles.footnote2,
+                                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                                 )
                             }
-                            FilledTonalButton(onClick = { onOpenPage(7) }) {
-                                Icon(AppIcons.People, null, Modifier.size(18.dp))
-                                Spacer(Modifier.width(4.dp))
+                            Button(onClick = { onOpenPage(7) }) {
                                 Text("账号")
                             }
                         }
@@ -331,7 +329,7 @@ private fun SettingsHomeScreen(
                                     .clip(RoundedCornerShape(4.dp))
                                     .background(
                                         if (connected) Color(0xFF4CAF50)
-                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                                        else MiuixTheme.colorScheme.onSurfaceContainerVariant.copy(alpha = 0.4f)
                                     )
                             )
                         },

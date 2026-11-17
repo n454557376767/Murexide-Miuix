@@ -78,13 +78,9 @@ fun ChatBackgroundScreen(
         }
     }
 
-    StyledScaffold(
-        title = { Text("聊天背景") },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                AutoMirroredIcon(AppIcons.ArrowBack, contentDescription = "返回")
-            }
-        },
+    MiuixPageScaffold(
+        title = "聊天背景",
+        onBack = onBack,
         actions = {
             IconButton(onClick = {
                 picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))

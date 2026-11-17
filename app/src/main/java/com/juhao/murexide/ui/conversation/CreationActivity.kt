@@ -105,9 +105,9 @@ fun CreationScreen(
         }
     }
     
-    StyledScaffold(
-        title = { Text(kind.title) },
-        navigationIcon = { IconButton(onClick = onBack) { AutoMirroredIcon(AppIcons.ArrowBack, "返回") } },
+    MiuixPageScaffold(
+        title = kind.title,
+        onBack = onBack,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = viewModel::create,

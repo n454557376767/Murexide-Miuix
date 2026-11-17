@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private const val CUSTOM_PREFIX = "CUSTOM_"
 
@@ -114,10 +115,12 @@ fun MurexideTheme(
     LaunchedEffect(Unit) {
         UiState.themeMode.value = settingsStorage.getThemeMode()
         UiState.themeColor.value = settingsStorage.getThemeColor()
+        UiState.miuixMonetMode.value = settingsStorage.getMiuixMonetMode()
     }
 
     val themeMode by UiState.themeMode
     val themeColor by UiState.themeColor
+    val monetMode by settingsStorage.miuixMonetModeFlow.collectAsState(initial = UiState.miuixMonetMode.value)
     val liquidGlassEnabled by settingsStorage.liquidGlassEnabledFlow.collectAsState(initial = false)
     val liquidGlassBlur by settingsStorage.liquidGlassBlurFlow.collectAsState(initial = 1f)
 
@@ -156,37 +159,47 @@ fun MurexideTheme(
         }
     }
 
-    MaterialExpressiveTheme(
-        colorScheme = colorScheme,
-        typography = Typography(),
-        content = {
-            val backdrop = if (liquidGlassEnabled) rememberLayerBackdrop() else null
-            CompositionLocalProvider(
-                LocalLiquidGlassEnabled provides liquidGlassEnabled,
-                LocalLiquidGlassBlur provides liquidGlassBlur,
-                LocalLiquidGlassBackdrop provides backdrop
-            ) {
-                if (backdrop != null) {
-                    Box(Modifier.fillMaxSize()) {
-                        Box(
-                            Modifier
-                                .fillMaxSize()
-                                .layerBackdrop(backdrop)
-                                .background(colorScheme.background)
-                        )
-                        Box(
-                            Modifier
-                                .fillMaxSize()
-                        ) {
-                            content()
+    val miuixController = rememberMiuixThemeController(
+        themeMode = themeMode,
+        monetMode = monetMode,
+        seedColor = colorScheme.primary
+    )
+
+    // Miuix 主题包在最外层：已迁移到 Miuix 的界面读取 MiuixTheme.colorScheme/textStyles，
+    // 未迁移的 Material3 界面仍可继续使用 MaterialExpressiveTheme 提供的配色。
+    MiuixTheme(controller = miuixController) {
+        MaterialExpressiveTheme(
+            colorScheme = colorScheme,
+            typography = Typography(),
+            content = {
+                val backdrop = if (liquidGlassEnabled) rememberLayerBackdrop() else null
+                CompositionLocalProvider(
+                    LocalLiquidGlassEnabled provides liquidGlassEnabled,
+                    LocalLiquidGlassBlur provides liquidGlassBlur,
+                    LocalLiquidGlassBackdrop provides backdrop
+                ) {
+                    if (backdrop != null) {
+                        Box(Modifier.fillMaxSize()) {
+                            Box(
+                                Modifier
+                                    .fillMaxSize()
+                                    .layerBackdrop(backdrop)
+                                    .background(colorScheme.background)
+                            )
+                            Box(
+                                Modifier
+                                    .fillMaxSize()
+                            ) {
+                                content()
+                            }
                         }
+                    } else {
+                        content()
                     }
-                } else {
-                    content()
                 }
             }
-        }
-    )
+        )
+    }
 }
 
 @Composable

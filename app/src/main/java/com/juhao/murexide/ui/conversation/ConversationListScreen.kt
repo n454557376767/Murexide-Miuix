@@ -177,9 +177,9 @@ fun ConversationListScreen(
         ConversationFilter.BOT -> 4
     }
 
-    StyledScaffold(
+    MiuixPageScaffold(
         modifier = modifier,
-        title = { Text("Murexide") },
+        title = "Murexide",
         actions = {
             AnimatedVisibility(
                 visible = showSearchInTopBar,
@@ -225,8 +225,7 @@ fun ConversationListScreen(
                     )
                 }
             }
-        },
-        isMediumTopAppBarDisabled = true
+        }
     ) { contentPadding ->
         Box(
             modifier = Modifier
