@@ -28,6 +28,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -47,6 +48,17 @@ import com.juhao.murexide.ui.components.*
 import com.juhao.murexide.ui.theme.UiState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private data class ContactTab(
     val title: String,
@@ -176,45 +188,43 @@ private fun ContactDirectoryScreen(
         else -> botListState
     }
 
-    Scaffold(
+    MiuixPageScaffold(
+        title = "通讯录",
         snackbarHost = {
             SnackbarHost(
                 snackbarHostState,
                 modifier = Modifier.padding(innerPadding)
             )
         },
-        topBar = {
-            Column {
-                TopAppBar(
-                    title = {
-                        Text("通讯录")
-                    },
-                    actions = {
-                        if (uiState.isLoading) {
-                            Box(
-                                modifier = Modifier.size(48.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(22.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            }
-                        } else {
-                            IconButton(onClick = onRefresh) {
-                                Icon(AppIcons.Refresh, contentDescription = "刷新通讯录")
-                            }
-                        }
-                    },
-                )
-
-                CapsuleTabBar(
-                    tabs = ContactTabs.map { it.title },
-                    selectedTabIndex = selectedTabIndex,
-                    onTabSelected = { selectedTabIndex = it },
-                    modifier = Modifier.padding(bottom = 6.dp)
-                )
+        actions = {
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier.size(48.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        strokeWidth = 2.dp,
+                        color = MiuixTheme.colorScheme.primary
+                    )
+                }
+            } else {
+                IconButton(onClick = onRefresh) {
+                    Icon(
+                        imageVector = AppIcons.Refresh,
+                        contentDescription = "刷新通讯录",
+                        tint = MiuixTheme.colorScheme.onBackground
+                    )
+                }
             }
+        },
+        topBarBottom = {
+            CapsuleTabBar(
+                tabs = ContactTabs.map { it.title },
+                selectedTabIndex = selectedTabIndex,
+                onTabSelected = { selectedTabIndex = it },
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+            )
         }
     ) { paddingValues ->
         ContactTabContent(
@@ -304,7 +314,10 @@ private fun ContactTabContent(
                             title = "加载失败",
                             subtitle = error,
                             primaryButton = {
-                                Button(onClick = onRetry) {
+                                Button(
+                                    onClick = onRetry,
+                                    colors = ButtonDefaults.buttonColorsPrimary()
+                                ) {
                                     Text("重试")
                                 }
                             }
@@ -333,9 +346,7 @@ private fun ContactTabContent(
                                 onClick = { onContactClick(contact) }
                             )
                             HorizontalDivider(
-                                modifier = Modifier.padding(start = 78.dp, end = 32.dp),
-                                thickness = 0.5.dp,
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
+                                modifier = Modifier.padding(start = 78.dp, end = 32.dp)
                             )
                         }
                     }
@@ -361,11 +372,10 @@ private fun NewMessageShortcut(
     isLoading: Boolean,
     onClick: () -> Unit
 ) {
-    Surface(
-        onClick = onClick,
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .padding(horizontal = 12.dp, vertical = 10.dp)
             .semantics {
                 contentDescription = "新消息"
                 stateDescription = if (pendingCount > 0) {
@@ -374,33 +384,33 @@ private fun NewMessageShortcut(
                     "没有待处理申请或邀请"
                 }
             },
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = 1.dp
+        onClick = onClick
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            BadgedBox(
-                badge = {
-                    if (pendingCount > 0) {
-                        Badge()
-                    }
-                }
-            ) {
-                Surface(
-                    modifier = Modifier.size(48.dp),
-                    shape = MaterialShapes.Square.toShape(),
-                    color = MaterialTheme.colorScheme.tertiaryContainer
+            Box(contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MiuixTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = AppIcons.PersonAdd,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer
-                        )
-                    }
+                    Icon(
+                        imageVector = AppIcons.PersonAdd,
+                        contentDescription = null,
+                        tint = MiuixTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+                if (pendingCount > 0) {
+                    UnreadCountBadge(
+                        count = pendingCount,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = 6.dp, y = (-6).dp)
+                    )
                 }
             }
 
@@ -408,8 +418,9 @@ private fun NewMessageShortcut(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "新消息",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    style = MiuixTheme.textStyles.body1,
+                    fontWeight = FontWeight.Medium,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
@@ -418,14 +429,14 @@ private fun NewMessageShortcut(
                         isLoading -> "正在检查新消息…"
                         else -> "好友与群聊申请、邀请"
                     },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                 )
             }
             Icon(
                 imageVector = AppIcons.ChevronRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MiuixTheme.colorScheme.onSurfaceVariantActions
             )
         }
     }
@@ -433,18 +444,7 @@ private fun NewMessageShortcut(
 
 @Composable
 private fun ContactSectionHeader(initial: Char) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow
-    ) {
-        Text(
-            text = initial.toString(),
-            modifier = Modifier.padding(start = 18.dp, end = 36.dp, top = 6.dp, bottom = 6.dp),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
+    SmallTitle(text = initial.toString())
 }
 
 @Composable
@@ -452,7 +452,6 @@ private fun ContactItemRow(
     contact: ContactItem,
     onClick: () -> Unit
 ) {
-    val themeColor by UiState.themeColor
     val displayName = contactDisplayName(contact)
     val supportingText = when {
         !contact.remark.isNullOrBlank() && contact.name.isNotBlank() && contact.remark != contact.name ->
@@ -462,37 +461,17 @@ private fun ContactItemRow(
         else -> "ID: ${contact.chatId}"
     }
 
-    ListItem(
-        onClick = onClick,
-        leadingContent = {
+    BasicComponent(
+        title = displayName,
+        summary = supportingText,
+        startAction = {
             Avatar(
                 url = contact.avatarUrl,
                 size = 48.dp
             )
         },
-        colors = ListItemDefaults.colors(
-            containerColor = if (themeColor == "WHITE") MaterialTheme.colorScheme.surfaceContainerHighest
-                else Color.Transparent
-        )
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = displayName,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(Modifier.height(2.dp))
-            Text(
-                text = supportingText,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
+        onClick = onClick
+    )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -524,20 +503,19 @@ private fun AlphabetFastScroller(
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-            Surface(
-                modifier = Modifier.size(72.dp),
-                shape = MaterialShapes.Sunny.toShape(),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shadowElevation = 4.dp
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .background(MiuixTheme.colorScheme.primary),
+                contentAlignment = Alignment.Center
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = activeLetter?.toString().orEmpty(),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                Text(
+                    text = activeLetter?.toString().orEmpty(),
+                    style = MiuixTheme.textStyles.title2,
+                    color = MiuixTheme.colorScheme.onPrimary,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
 
@@ -595,7 +573,7 @@ private fun AlphabetFastScroller(
                             .then(
                                 if (isSelected) {
                                     Modifier.background(
-                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                        color = MiuixTheme.colorScheme.primary,
                                         shape = CircleShape
                                     )
                                 } else {
@@ -607,9 +585,9 @@ private fun AlphabetFastScroller(
                         Text(
                             text = letter.toString(),
                             color = if (isSelected) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
+                                MiuixTheme.colorScheme.onPrimary
                             } else {
-                                MaterialTheme.colorScheme.primary
+                                MiuixTheme.colorScheme.primary
                             },
                             fontSize = 9.sp,
                             lineHeight = 10.sp,
@@ -652,7 +630,11 @@ private fun NewMessagesScreen(
         },
         actions = {
             IconButton(onClick = onRefresh, enabled = !uiState.isRequestsLoading) {
-                Icon(AppIcons.Refresh, contentDescription = "刷新新消息")
+                Icon(
+                    imageVector = AppIcons.Refresh,
+                    contentDescription = "刷新新消息",
+                    tint = MiuixTheme.colorScheme.onBackground
+                )
             }
         }
     ) { paddingValues ->
@@ -667,7 +649,10 @@ private fun NewMessagesScreen(
                     title = "加载失败",
                     subtitle = uiState.requestsError,
                     primaryButton = {
-                        Button(onClick = onRefresh) {
+                        Button(
+                            onClick = onRefresh,
+                            colors = ButtonDefaults.buttonColorsPrimary()
+                        ) {
                             Text("重试")
                         }
                     }
@@ -728,12 +713,7 @@ private fun RequestSurface(
         add(request.typeLabel)
     }.joinToString(" · ")
 
-    Surface(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = 1.dp
-    ) {
+    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.padding(14.dp),
@@ -753,8 +733,9 @@ private fun RequestSurface(
                         Text(
                             text = request.displayName,
                             modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
+                            style = MiuixTheme.textStyles.body1,
+                            fontWeight = FontWeight.Medium,
+                            color = MiuixTheme.colorScheme.onSurfaceContainer,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -765,8 +746,8 @@ private fun RequestSurface(
                     Spacer(Modifier.height(3.dp))
                     Text(
                         text = description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceContainerVariant,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -774,8 +755,8 @@ private fun RequestSurface(
                         Spacer(Modifier.height(6.dp))
                         Text(
                             text = request.note,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceContainer,
                             maxLines = 3,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -784,15 +765,15 @@ private fun RequestSurface(
                         Spacer(Modifier.height(6.dp))
                         Text(
                             text = request.invitedAtText,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MiuixTheme.textStyles.footnote2,
+                            color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                         )
                     }
                 }
             }
 
             if (request.isPending) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+                HorizontalDivider()
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -808,15 +789,21 @@ private fun RequestSurface(
                         Spacer(Modifier.width(8.dp))
                         Text(
                             text = "处理中…",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MiuixTheme.textStyles.footnote1,
+                            color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                         )
                     } else {
-                        OutlinedButton(onClick = { onRespond(false) }) {
+                        Button(
+                            onClick = { onRespond(false) },
+                            colors = ButtonDefaults.buttonColors()
+                        ) {
                             Text("拒绝")
                         }
                         Spacer(Modifier.width(10.dp))
-                        Button(onClick = { onRespond(true) }) {
+                        Button(
+                            onClick = { onRespond(true) },
+                            colors = ButtonDefaults.buttonColorsPrimary()
+                        ) {
                             Text("同意")
                         }
                     }
@@ -833,36 +820,38 @@ private fun RequestAvatar(url: String, type: Int) {
         return
     }
 
-    Surface(
-        modifier = Modifier.size(52.dp),
-        shape = RoundedCornerShape(17.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer
+    Box(
+        modifier = Modifier
+            .size(52.dp)
+            .clip(RoundedCornerShape(17.dp))
+            .background(MiuixTheme.colorScheme.secondaryContainer),
+        contentAlignment = Alignment.Center
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Icon(
-                imageVector = when (type) {
-                    2 -> AppIcons.Groups
-                    3 -> AppIcons.SmartToy
-                    else -> AppIcons.People
-                },
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-        }
+        Icon(
+            imageVector = when (type) {
+                2 -> AppIcons.Groups
+                3 -> AppIcons.SmartToy
+                else -> AppIcons.People
+            },
+            contentDescription = null,
+            tint = MiuixTheme.colorScheme.onSecondaryContainer
+        )
     }
 }
 
 @Composable
 private fun RequestStatusPill(label: String) {
-    Surface(
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHighest
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(MiuixTheme.colorScheme.surfaceContainerHigh),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = label,
             modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.onSurfaceContainerVariant
         )
     }
 }
@@ -877,24 +866,31 @@ private fun LoadingState(modifier: Modifier = Modifier) {
 
 @Composable
 private fun InlineError(message: String, onRetry: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.errorContainer
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
+        colors = CardDefaults.defaultColors(
+            color = MiuixTheme.colorScheme.errorContainer,
+            contentColor = MiuixTheme.colorScheme.onErrorContainer
+        )
     ) {
         Row(
-            modifier = Modifier.padding(start = 14.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+            modifier = Modifier.padding(start = 16.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = message,
                 modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer,
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onErrorContainer,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            Button(onClick = onRetry) {
+            Button(
+                onClick = onRetry,
+                colors = ButtonDefaults.buttonColorsPrimary()
+            ) {
                 Text("重试")
             }
         }

@@ -14,7 +14,6 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -23,15 +22,10 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
@@ -48,7 +42,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.semantics.Role
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -81,9 +74,6 @@ import com.juhao.murexide.ui.settings.SettingsActivity
 import androidx.compose.foundation.combinedClickable
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.blur.materials.HazeMaterials
-import dev.chrisbanes.haze.HazeInput
-import dev.chrisbanes.haze.blur.hazeBlur
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
@@ -93,6 +83,16 @@ import com.juhao.murexide.ui.theme.liquidGlass
 import com.juhao.murexide.ui.theme.liquidGlassContentColor
 import com.juhao.murexide.ui.theme.liquidglass.LiquidBottomTabs
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.pointerInput
+import kotlinx.coroutines.withTimeoutOrNull
+import top.yukonga.miuix.kmp.basic.FloatingNavigationBar
+import top.yukonga.miuix.kmp.basic.FloatingNavigationBarItem
+import top.yukonga.miuix.kmp.basic.NavigationBar
+import top.yukonga.miuix.kmp.basic.NavigationBarDefaults
+import top.yukonga.miuix.kmp.basic.NavigationBarItem
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private data class NavItem(
     val route: String,
@@ -200,188 +200,117 @@ private fun HomeNavigationLabel(
     }
 }
 
-@Composable
-private fun TelegramFloatingNavigationBar(
-    currentRoute: String?,
-    unreadCount: Int,
-    showAccountMenu: Boolean,
-    accounts: List<UserAccount>,
-    currentAccountId: String,
-    selectedIndicatorColor: Color,
-    hazeState: HazeState,
-    liquidBackdrop: Backdrop?,
-    onNavigate: (String) -> Unit,
-    onShowAccountMenu: () -> Unit,
-    onDismissAccountMenu: () -> Unit,
-) {
-    val liquidGlassEnabled = LocalLiquidGlassEnabled.current
-    val liquidGlassBlur = LocalLiquidGlassBlur.current
-    val shape = RoundedCornerShape(32.dp)
-    val navigationBarHeight = 64.dp
-    val indicatorInset = 5.dp
-    val indicatorHeight = navigationBarHeight - indicatorInset * 2f
-    val indicatorShape = RoundedCornerShape(26.dp)
-    val navigationSurfaceColor = MaterialTheme.colorScheme.surfaceContainer.copy(
-        alpha = if (liquidGlassEnabled && liquidBackdrop != null) 0.56f else 0.72f
-    )
-    val navigationContentColor = liquidGlassContentColor(
-        preferredColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        glassColor = navigationSurfaceColor,
-        backgroundColor = MaterialTheme.colorScheme.background,
-    )
-
-    val containerModifier = if (liquidGlassEnabled && liquidBackdrop != null) {
-        Modifier.liquidGlass(
-            enabled = true,
-            backdrop = liquidBackdrop,
-            shape = shape,
-            surfaceColor = navigationSurfaceColor,
-            blurRadius = 16.dp * liquidGlassBlur,
-            lensHeight = 12.dp,
-            lensAmount = 22.dp
-        )
-    } else {
-        Modifier
-            .clip(shape)
-            .hazeBlur(
-                input = HazeInput.Sources(hazeState),
-                style = HazeMaterials.thin().then {
-                    blurRadius(28.dp)
-                    noiseFactor(0f)
+/**
+ * 底栏长按探测（不消费指针事件）。
+ *
+ * Miuix 的 `NavigationBarItem` / `FloatingNavigationBarItem` 只暴露 `onClick`，
+ * 而"长按『我的』打开账号快速切换菜单"是项目已有交互。这里在容器上观察长按，
+ * 不 consume 任何事件，子项自己的点击与无障碍语义保持不变。
+ */
+private fun Modifier.onLongPressWithoutConsuming(onLongPress: () -> Unit): Modifier =
+    pointerInput(onLongPress) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false)
+            var pressed = true
+            val releasedInTime = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
+                while (pressed) {
+                    val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id }
+                    pressed = change?.pressed == true
                 }
-            )
-    }
-
-    NavigationBar(
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(start = 20.dp, top = 8.dp, end = 20.dp, bottom = 10.dp)
-            .shadow(elevation = 2.dp, shape = shape, clip = false)
-            .then(containerModifier)
-            .height(navigationBarHeight),
-        containerColor = Color.Transparent,
-        tonalElevation = 0.dp,
-        windowInsets = WindowInsets(0)
-    ) {
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            val contentInset = 12.dp
-            val itemWidth = (maxWidth - contentInset * 2f) / navItems.size
-            val selectionWidth = itemWidth + (contentInset - indicatorInset) * 2f
-
-            navItems.forEachIndexed { index, item ->
-                val selected = currentRoute == item.route
-                val indicatorProgress by animateFloatAsState(
-                    targetValue = if (selected) 1f else 0f,
-                    animationSpec = tween(
-                        durationMillis = if (selected) 220 else 160,
-                        easing = if (selected) {
-                            LinearOutSlowInEasing
-                        } else {
-                            FastOutLinearInEasing
-                        }
-                    ),
-                    label = "${item.route} bottom navigation indicator"
-                )
-
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .offset(x = itemWidth * index.toFloat() + indicatorInset)
-                        .width(selectionWidth)
-                        .height(indicatorHeight)
-                        .graphicsLayer {
-                            transformOrigin = TransformOrigin.Center
-                            scaleX = indicatorProgress
-                            scaleY = indicatorProgress
-                        }
-                        .then(
-                            if (liquidGlassEnabled && liquidBackdrop != null) {
-                                Modifier.liquidGlass(
-                                    enabled = true,
-                                    backdrop = liquidBackdrop,
-                                    shape = indicatorShape,
-                                    surfaceColor = selectedIndicatorColor.copy(alpha = 0.48f),
-                                    blurRadius = 6.dp * liquidGlassBlur,
-                                    lensHeight = 6.dp,
-                                    lensAmount = 10.dp
-                                )
-                            } else {
-                                Modifier
-                                    .clip(indicatorShape)
-                                    .background(selectedIndicatorColor)
-                            }
-                        )
-                )
+                true
             }
-
-            CompositionLocalProvider(LocalContentColor provides navigationContentColor) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = contentInset),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    navItems.forEach { item ->
-                        val selected = currentRoute == item.route
-                        val interactionSource = remember(item.route) { MutableInteractionSource() }
-                        val interactionModifier = if (item.route == "mine") {
-                            Modifier.combinedClickable(
-                                interactionSource = interactionSource,
-                                indication = null,
-                                onClick = { onNavigate(item.route) },
-                                onLongClick = onShowAccountMenu,
-                                onLongClickLabel = "打开账号菜单"
-                            )
-                        } else {
-                            Modifier.selectable(
-                                selected = selected,
-                                interactionSource = interactionSource,
-                                indication = null,
-                                onClick = { onNavigate(item.route) },
-                                role = Role.Tab
-                            )
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .then(interactionModifier),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                HomeNavigationIcon(
-                                    item = item,
-                                    selected = selected,
-                                    unreadCount = unreadCount
-                                )
-                                Spacer(modifier = Modifier.height(1.dp))
-                                HomeNavigationLabel(item, selected, compact = true)
-                            }
-                            if (item.route == "mine") {
-                                AccountQuickSwitchMenu(
-                                    expanded = showAccountMenu,
-                                    accounts = accounts,
-                                    hazeState = hazeState,
-                                    currentAccountId = currentAccountId,
-                                    onDismissRequest = onDismissAccountMenu
-                                )
-                            }
-                        }
-                    }
+            if (releasedInTime == null) {
+                onLongPress()
+                // 等手指抬起，避免同一次长按重复触发
+                while (pressed) {
+                    val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
+                    pressed = change.pressed
                 }
             }
         }
     }
-}
 
+/**
+ * Miuix 底栏：固定 [NavigationBar] 或悬浮 [FloatingNavigationBar]。
+ *
+ * 选中色用 `primary`，未选中用摘要文字角色；未读数走角标槽位。
+ * 玻璃拟态（LiquidGlass）分支仍由 [LiquidBottomTabs] 负责，不在此处叠加。
+ */
+@Composable
+private fun MiuixBottomNavigationBar(
+    currentRoute: String?,
+    unreadCount: Int,
+    floating: Boolean,
+    showAccountMenu: Boolean,
+    accounts: List<UserAccount>,
+    currentAccountId: String,
+    hazeState: HazeState,
+    onNavigate: (String) -> Unit,
+    onLongPress: () -> Unit,
+    onDismissAccountMenu: () -> Unit,
+) {
+    val itemColors = NavigationBarDefaults.navigationBarItemColors(
+        unselectedContentColor = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+        selectedContentColor = MiuixTheme.colorScheme.primary,
+    )
+    val barModifier = Modifier.onLongPressWithoutConsuming(onLongPress)
+
+    if (floating) {
+        Box(modifier = barModifier.fillMaxWidth()) {
+            FloatingNavigationBar(horizontalOutSidePadding = 20.dp) {
+                navItems.forEach { item ->
+                    val selected = currentRoute == item.route
+                    FloatingNavigationBarItem(
+                        selected = selected,
+                        onClick = { onNavigate(item.route) },
+                        icon = if (selected) item.filledIcon else item.outlineIcon,
+                        label = item.title,
+                        colors = itemColors,
+                        badge = if (item.route == "conversations" && unreadCount > 0) {
+                            { UnreadCountBadge(unreadCount) }
+                        } else {
+                            null
+                        },
+                    )
+                }
+            }
+            AccountQuickSwitchMenu(
+                expanded = showAccountMenu,
+                accounts = accounts,
+                hazeState = hazeState,
+                currentAccountId = currentAccountId,
+                onDismissRequest = onDismissAccountMenu
+            )
+        }
+    } else {
+        Box(modifier = barModifier.fillMaxWidth()) {
+            NavigationBar {
+                navItems.forEach { item ->
+                    val selected = currentRoute == item.route
+                    NavigationBarItem(
+                        selected = selected,
+                        onClick = { onNavigate(item.route) },
+                        icon = if (selected) item.filledIcon else item.outlineIcon,
+                        label = item.title,
+                        colors = itemColors,
+                        badge = if (item.route == "conversations" && unreadCount > 0) {
+                            { UnreadCountBadge(unreadCount) }
+                        } else {
+                            null
+                        },
+                    )
+                }
+            }
+            AccountQuickSwitchMenu(
+                expanded = showAccountMenu,
+                accounts = accounts,
+                hazeState = hazeState,
+                currentAccountId = currentAccountId,
+                onDismissRequest = onDismissAccountMenu
+            )
+        }
+    }
+}
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabSlideDirection():
         AnimatedContentTransitionScope.SlideDirection {
@@ -474,10 +403,10 @@ fun MainScreen(account: UserAccount) {
     NavigationSuiteScaffold(
         layoutType = if (useNavigationRail) {
             NavigationSuiteType.NavigationRail
-        } else if (floatBottomBarEnabled) {
-            NavigationSuiteType.None
         } else {
-            NavigationSuiteType.NavigationBar
+            // 底部导航由 Miuix 的 NavigationBar / FloatingNavigationBar 接管，
+            // NavigationSuiteScaffold 只保留大屏 NavigationRail 分支。
+            NavigationSuiteType.None
         },
         navigationSuiteColors = if (themeColor == "WHITE") {
             NavigationSuiteDefaults.colors(
@@ -550,8 +479,8 @@ fun MainScreen(account: UserAccount) {
             containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets(0),
             bottomBar = {
-                if (!useNavigationRail && floatBottomBarEnabled) {
-                    if (liquidGlassEnabled && liquidBackdrop != null) {
+                if (!useNavigationRail) {
+                    if (floatBottomBarEnabled && liquidGlassEnabled && liquidBackdrop != null) {
                         LiquidBottomTabs(
                             selectedTabIndex = navItems.indexOfFirst { it.route == currentRoute }
                                 .coerceAtLeast(0),
@@ -609,21 +538,16 @@ fun MainScreen(account: UserAccount) {
                             }
                         }
                     } else {
-                        TelegramFloatingNavigationBar(
+                        MiuixBottomNavigationBar(
                             currentRoute = currentRoute,
                             unreadCount = unreadCount,
-                            showAccountMenu = showAccountMenu,
+                            floating = floatBottomBarEnabled,
+                            showAccountMenu = showAccountMenu && !liquidGlassEnabled,
                             accounts = loggedInAccounts,
                             currentAccountId = account.id,
-                            selectedIndicatorColor = if (themeColor == "WHITE") {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.secondaryContainer
-                            },
                             hazeState = hazeState,
-                            liquidBackdrop = liquidBackdrop,
                             onNavigate = navigateTo,
-                            onShowAccountMenu = { showAccountMenu = true },
+                            onLongPress = { showAccountMenu = true },
                             onDismissAccountMenu = { showAccountMenu = false },
                         )
                     }

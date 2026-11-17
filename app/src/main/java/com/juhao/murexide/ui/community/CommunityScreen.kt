@@ -33,6 +33,12 @@ import com.juhao.murexide.ui.components.*
 import com.juhao.murexide.ui.icons.AppIcons
 import com.juhao.murexide.ui.icons.AutoMirroredIcon
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,41 +110,41 @@ fun CommunityScreen(
     )
     val selectedIndex = tabs.indexOfFirst { it.first == uiState.currentTab }.coerceAtLeast(0)
 
-    Scaffold(
-        topBar = {
-            Column {
-                TopAppBar(
-                    title = { Text("社区") },
-                    actions = {
-                        if (uiState.currentTab == CommunityTab.RECOMMEND) {
-                            IconButton(onClick = { viewModel.toggleSort() }) {
-                                Icon(
-                                    imageVector = if (uiState.sort == CommunitySort.RECOMMEND) {
-                                        AppIcons.LocalFireDepartment
-                                    } else {
-                                        AppIcons.Update
-                                    },
-                                    contentDescription = if (uiState.sort == CommunitySort.RECOMMEND) "推荐" else "最新"
-                                )
-                            }
-                        }
-                        IconButton(onClick = {
-                            scope.launch { searchBarState.animateToExpanded() }
-                        }) {
-                            Icon(AppIcons.Search, contentDescription = "搜索")
-                        }
-                    }
-                )
-                PrimaryTabRow(selectedTabIndex = selectedIndex) {
-                    tabs.forEachIndexed { index, (tab, label) ->
-                        Tab(
-                            selected = selectedIndex == index,
-                            onClick = { viewModel.selectTab(tab) },
-                            text = { Text(label) }
-                        )
-                    }
+    MiuixPageScaffold(
+        title = "社区",
+        actions = {
+            if (uiState.currentTab == CommunityTab.RECOMMEND) {
+                IconButton(onClick = { viewModel.toggleSort() }) {
+                    Icon(
+                        imageVector = if (uiState.sort == CommunitySort.RECOMMEND) {
+                            AppIcons.LocalFireDepartment
+                        } else {
+                            AppIcons.Update
+                        },
+                        contentDescription = if (uiState.sort == CommunitySort.RECOMMEND) "推荐" else "最新",
+                        tint = MiuixTheme.colorScheme.onBackground
+                    )
                 }
             }
+            IconButton(onClick = {
+                scope.launch { searchBarState.animateToExpanded() }
+            }) {
+                Icon(
+                    imageVector = AppIcons.Search,
+                    contentDescription = "搜索",
+                    tint = MiuixTheme.colorScheme.onBackground
+                )
+            }
+        },
+        topBarBottom = {
+            CapsuleTabBar(
+                tabs = tabs.map { it.second },
+                selectedTabIndex = selectedIndex,
+                onTabSelected = { index ->
+                    tabs.getOrNull(index)?.let { (tab, _) -> viewModel.selectTab(tab) }
+                },
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+            )
         }
     ) { contentPadding ->
         Box(
@@ -292,7 +298,7 @@ fun AllBaContent(
             modifier = Modifier
                 .width(96.dp)
                 .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .background(MiuixTheme.colorScheme.surfaceContainer)
         ) {
             sides.forEach { (side, label) ->
                 val selected = currentSide == side
@@ -301,17 +307,17 @@ fun AllBaContent(
                         .fillMaxWidth()
                         .clickable { onSideSelected(side) }
                         .background(
-                            if (selected) MaterialTheme.colorScheme.surface else Color.Transparent
+                            if (selected) MiuixTheme.colorScheme.background else Color.Transparent
                         )
                         .padding(vertical = 16.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        label,
-                        fontSize = 14.sp,
+                        text = label,
+                        style = MiuixTheme.textStyles.body2,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                        color = if (selected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (selected) MiuixTheme.colorScheme.primary
+                        else MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
             }
@@ -378,8 +384,9 @@ fun ManageContent(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "你还没有创建分区",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "你还没有创建分区",
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
             }
@@ -407,7 +414,11 @@ fun BaList(
         }
     } else if (baList.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(emptyText, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = emptyText,
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+            )
         }
     } else {
         LazyColumn(contentPadding = PaddingValues(bottom = innerPadding.calculateBottomPadding())) {
@@ -423,34 +434,26 @@ fun BaList(
 
 @Composable
 fun BaRow(modifier: Modifier = Modifier, ba: BaItem, onClick: () -> Unit) {
-    ListItem(
-        modifier = modifier,
-        onClick = onClick,
-        leadingContent = {
-            Avatar(url = ba.avatar, size = 48.dp)
-        },
-        trailingContent = {
-            Icon(
-                AppIcons.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = ba.name,
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp
-            )
-            if (ba.memberNum > 0 || ba.postNum > 0) {
-                Text(
-                    text = "${ba.memberNum} 关注 · ${ba.postNum} 文章",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+    Box(modifier = modifier) {
+        BasicComponent(
+            title = ba.name,
+            summary = if (ba.memberNum > 0 || ba.postNum > 0) {
+                "${ba.memberNum} 关注 · ${ba.postNum} 文章"
+            } else {
+                null
+            },
+            startAction = {
+                Avatar(url = ba.avatar, size = 48.dp)
+            },
+            endActions = {
+                Icon(
+                    imageVector = AppIcons.ChevronRight,
+                    contentDescription = null,
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                 )
-            }
-        }
+            },
+            onClick = onClick
+        )
     }
 }
 
@@ -487,7 +490,11 @@ fun PostsList(
                         modifier = Modifier.fillParentMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("暂无文章", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            text = "暂无文章",
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                        )
                     }
                 }
             }
@@ -550,79 +557,84 @@ fun PostCard(
     onCollectClick: (Int) -> Unit,
     onPostClick: (PostItem) -> Unit
 ) {
-    Column(
+    Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clickable { onPostClick(post) }
-            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        onClick = { onPostClick(post) }
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Avatar(url = post.senderAvatar, size = 36.dp)
-            Spacer(modifier = Modifier.width(10.dp))
-            Column {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Avatar(url = post.senderAvatar, size = 36.dp)
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                    Text(
+                        text = post.senderNickname,
+                        style = MiuixTheme.textStyles.body1,
+                        fontWeight = FontWeight.Medium,
+                        color = MiuixTheme.colorScheme.onSurfaceContainer
+                    )
+                    Text(
+                        text = post.createTimeText,
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceContainerVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = post.title,
+                style = MiuixTheme.textStyles.title4,
+                fontWeight = FontWeight.Bold,
+                color = MiuixTheme.colorScheme.onSurfaceContainer,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            if (post.content.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = post.senderNickname,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp
-                )
-                Text(
-                    text = post.createTimeText,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 12.sp
+                    text = post.content,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
-        }
 
-        Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-        Text(
-            text = post.title,
-            fontWeight = FontWeight.Bold,
-            fontSize = 17.sp,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                InteractionButton(
+                    icon = if (post.isLiked == "1") AppIcons.Favorite else AppIcons.FavoriteBorder,
+                    count = post.likeNum,
+                    active = post.isLiked == "1",
+                    onClick = { onLikeClick(post.id) }
+                )
 
-        if (post.content.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = post.content,
-                fontSize = 14.sp,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+                InteractionButton(
+                    icon = AppIcons.ChatBubble,
+                    count = post.commentNum,
+                    active = false,
+                    onClick = { }
+                )
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            InteractionButton(
-                icon = if (post.isLiked == "1") AppIcons.Favorite else AppIcons.FavoriteBorder,
-                count = post.likeNum,
-                tint = if (post.isLiked == "1") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                onClick = { onLikeClick(post.id) }
-            )
-
-            InteractionButton(
-                icon = AppIcons.ChatBubble,
-                count = post.commentNum,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                onClick = { }
-            )
-
-            InteractionButton(
-                icon = if (post.isCollected == 1) AppIcons.Bookmark else AppIcons.BookmarkBorder,
-                count = post.collectNum,
-                tint = if (post.isCollected == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                onClick = { onCollectClick(post.id) }
-            )
+                InteractionButton(
+                    icon = if (post.isCollected == 1) AppIcons.Bookmark else AppIcons.BookmarkBorder,
+                    count = post.collectNum,
+                    active = post.isCollected == 1,
+                    onClick = { onCollectClick(post.id) }
+                )
+            }
         }
     }
 }
@@ -631,11 +643,19 @@ fun PostCard(
 fun InteractionButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     count: Int,
-    tint: Color,
+    active: Boolean,
     onClick: () -> Unit
 ) {
+    val tint = if (active) {
+        MiuixTheme.colorScheme.primary
+    } else {
+        MiuixTheme.colorScheme.onSurfaceContainerVariant
+    }
     Row(
-        modifier = Modifier.clickable { onClick() },
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 2.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -648,8 +668,8 @@ fun InteractionButton(
         if (count > 0) {
             Text(
                 text = count.toString(),
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.footnote1,
+                color = tint
             )
         }
     }

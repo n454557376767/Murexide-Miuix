@@ -31,7 +31,7 @@ import com.juhao.murexide.data.BaDetail
 import com.juhao.murexide.ui.community.PostCard
 import com.juhao.murexide.ui.community.detail.PostDetailActivity
 import com.juhao.murexide.ui.components.Avatar
-import com.juhao.murexide.ui.components.StyledScaffold
+import com.juhao.murexide.ui.components.MiuixPageScaffold
 import com.juhao.murexide.ui.icons.AppIcons
 import com.juhao.murexide.ui.icons.AutoMirroredIcon
 import kotlinx.coroutines.launch
@@ -76,13 +76,17 @@ fun BaDetailScreen(
     var topBarTitleBounds by remember { mutableStateOf<Rect?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        StyledScaffold(
+        MiuixPageScaffold(
             modifier = Modifier.fillMaxSize(),
-            isMediumTopAppBarDisabled = true,
-            title = {
+            title = ba?.name ?: "分区",
+            onBack = onBackClick,
+            // 方案 A：标题改为 String，原来的「隐形测量层」移到顶栏 overlay，仍然只用来取 bounds
+            topBarOverlay = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 56.dp, end = 16.dp)
                 ) {
                     if (ba != null && ba.avatar.isNotBlank()) {
                         Avatar(
@@ -109,14 +113,6 @@ fun BaDetailScreen(
                         fontSize = 14.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
-                    )
-                }
-            },
-            navigationIcon = {
-                IconButton(onClick = onBackClick) {
-                    AutoMirroredIcon(
-                        imageVector = AppIcons.ArrowBack,
-                        contentDescription = "返回"
                     )
                 }
             },
@@ -166,8 +162,7 @@ fun BaDetailScreen(
                         }
                     }
                 }
-            },
-            floatingActionButtonPosition = FabPosition.End
+            }
         ) { padding ->
             when {
                 uiState.isLoadingInfo && ba == null -> {

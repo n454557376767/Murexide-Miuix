@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.ThemeController
+import top.yukonga.miuix.kmp.theme.darkColorScheme
 
 /** 莫奈调色板模式：关闭 */
 const val MIUIX_MONET_OFF = "off"
@@ -76,6 +77,9 @@ internal fun rememberMiuixThemeController(
     return remember(mode, keyColor) {
         ThemeController(
             colorSchemeMode = mode,
+            // Miuix 默认深色的 background 与 surfaceContainer 同为 #242424，卡片会与背景糊在一起。
+            // 将页面底色压成纯黑，分组卡片/行容器才能与背景区分开。
+            darkColors = darkColorScheme(background = Color.Black),
             keyColor = keyColor,
         )
     }

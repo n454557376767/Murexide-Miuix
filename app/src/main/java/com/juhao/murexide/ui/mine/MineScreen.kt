@@ -4,15 +4,20 @@ import com.juhao.murexide.ui.icons.AppIcons
 
 import android.app.Activity
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -27,8 +32,14 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import java.text.NumberFormat
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MineScreen(
     token: String,
@@ -68,7 +79,11 @@ fun MineScreen(
         title = "我的",
         actions = {
             IconButton(onClick = onSettingsClick) {
-                Icon(AppIcons.Settings, contentDescription = "设置")
+                Icon(
+                    imageVector = AppIcons.Settings,
+                    contentDescription = "设置",
+                    tint = MiuixTheme.colorScheme.onBackground
+                )
             }
         }
     ) {
@@ -80,7 +95,7 @@ fun MineScreen(
                         .padding(it),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = MiuixTheme.colorScheme.primary)
                 }
             }
 
@@ -90,7 +105,10 @@ fun MineScreen(
                     title = "加载失败",
                     subtitle = state.message,
                     primaryButton = {
-                        Button(onClick = { viewModel.loadUserInfo() }) {
+                        Button(
+                            onClick = { viewModel.loadUserInfo() },
+                            colors = ButtonDefaults.buttonColorsPrimary()
+                        ) {
                             Text("重试")
                         }
                     }
@@ -130,32 +148,32 @@ fun UploadProgressDialog(progress: Float) {
         onDismissRequest = { },
         properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
     ) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 4.dp,
-            modifier = Modifier.width(280.dp)
-        ) {
+        Card(modifier = Modifier.width(280.dp)) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "正在上传头像",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    style = MiuixTheme.textStyles.title4,
+                    fontWeight = FontWeight.Bold,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 LinearProgressIndicator(
                     progress = { progress },
                     modifier = Modifier.fillMaxWidth(),
-                    strokeCap = StrokeCap.Round
+                    strokeCap = StrokeCap.Round,
+                    color = MiuixTheme.colorScheme.primary,
+                    trackColor = MiuixTheme.colorScheme.secondaryContainer
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "${(progress * 100).toInt()}%",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                 )
             }
         }
@@ -242,37 +260,30 @@ private fun MineContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ActivityOverviewCard(
     onlineDay: Int?,
     continuousOnlineDay: Int?,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
-    ) {
+    Card(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
-                modifier = Modifier.size(48.dp),
-                shape = MaterialShapes.Square.toShape(),
-                color = MaterialTheme.colorScheme.tertiaryContainer
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MiuixTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = AppIcons.LocalFireDepartment,
-                        contentDescription = null,
-                        modifier = Modifier.size(26.dp),
-                        tint = MaterialTheme.colorScheme.onTertiaryContainer
-                    )
-                }
+                Icon(
+                    imageVector = AppIcons.LocalFireDepartment,
+                    contentDescription = null,
+                    modifier = Modifier.size(26.dp),
+                    tint = MiuixTheme.colorScheme.onPrimaryContainer
+                )
             }
 
             Spacer(modifier = Modifier.width(14.dp))
@@ -287,9 +298,11 @@ private fun ActivityOverviewCard(
                     modifier = Modifier.weight(1f)
                 )
 
-                VerticalDivider(
-                    modifier = Modifier.height(38.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant
+                Box(
+                    modifier = Modifier
+                        .height(38.dp)
+                        .width(1.dp)
+                        .background(MiuixTheme.colorScheme.dividerLine)
                 )
 
                 ActivityMetric(
@@ -314,23 +327,22 @@ private fun ActivityMetric(
     ) {
         Text(
             text = value?.let { "$it 天" } ?: "—",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
+            style = MiuixTheme.textStyles.title4,
+            fontWeight = FontWeight.Medium,
+            color = MiuixTheme.colorScheme.onSurfaceContainer,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.onSurfaceContainerVariant,
             maxLines = 1
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ProfileCard(
     userInfo: UserInfo,
@@ -346,12 +358,9 @@ private fun ProfileCard(
         }.format(userInfo.coin)
     }
 
-    Surface(
-        onClick = onEditProfileClick,
+    Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 0.dp
+        onClick = onEditProfileClick
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -364,25 +373,21 @@ private fun ProfileCard(
                         }
                     )
 
-                    Surface(
-                        shape = MaterialShapes.Circle.toShape(),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        tonalElevation = 2.dp,
+                    Box(
                         modifier = Modifier
                             .size(26.dp)
                             .offset(x = 3.dp, y = 3.dp)
-                            .clickable {
-                                onAvatarEditClick()
-                            }
+                            .clip(CircleShape)
+                            .background(MiuixTheme.colorScheme.primary)
+                            .clickable { onAvatarEditClick() },
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = AppIcons.Edit,
-                                contentDescription = "修改头像",
-                                modifier = Modifier.size(15.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
+                        Icon(
+                            imageVector = AppIcons.Edit,
+                            contentDescription = "修改头像",
+                            modifier = Modifier.size(15.dp),
+                            tint = MiuixTheme.colorScheme.onPrimary
+                        )
                     }
                 }
 
@@ -391,8 +396,9 @@ private fun ProfileCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = userInfo.name.ifEmpty { "未知" },
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MiuixTheme.textStyles.title3,
+                        fontWeight = FontWeight.Medium,
+                        color = MiuixTheme.colorScheme.onSurfaceContainer,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -401,8 +407,8 @@ private fun ProfileCard(
 
                     Text(
                         text = "ID: ${userInfo.id}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceContainerVariant
                     )
 
                     if (introduction.isNotBlank()) {
@@ -410,8 +416,8 @@ private fun ProfileCard(
 
                         Text(
                             text = introduction,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MiuixTheme.textStyles.footnote1,
+                            color = MiuixTheme.colorScheme.onSurfaceContainerVariant,
                             maxLines = 3,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -421,7 +427,7 @@ private fun ProfileCard(
                     imageVector = AppIcons.ChevronRight,
                     contentDescription = "编辑资料",
                     modifier = Modifier.size(22.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                 )
             }
 
@@ -456,10 +462,10 @@ private fun ProfileStat(
     value: String,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(18.dp))
+            .background(MiuixTheme.colorScheme.surfaceContainerHigh)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -469,7 +475,7 @@ private fun ProfileStat(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(22.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MiuixTheme.colorScheme.primary
             )
 
             Spacer(modifier = Modifier.width(10.dp))
@@ -477,15 +483,15 @@ private fun ProfileStat(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceContainerVariant,
                     maxLines = 1
                 )
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MiuixTheme.textStyles.body2,
+                    fontWeight = FontWeight.Medium,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

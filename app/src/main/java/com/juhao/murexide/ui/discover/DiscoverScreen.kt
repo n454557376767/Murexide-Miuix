@@ -25,16 +25,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -62,11 +52,19 @@ import com.juhao.murexide.data.BotStoreItem
 import com.juhao.murexide.data.GroupCategoryItem
 import com.juhao.murexide.data.GroupRecommendItem
 import com.juhao.murexide.ui.components.Avatar
+import com.juhao.murexide.ui.components.CapsuleTabBar
+import com.juhao.murexide.ui.components.MiuixPageScaffold
+import com.juhao.murexide.ui.components.MiuixSearchField
 import com.juhao.murexide.ui.conversationdetail.ConversationDetailActivity
 import com.juhao.murexide.ui.icons.AppIcons
 import com.juhao.murexide.utils.UrlSchemeHandler
 import com.juhao.murexide.utils.isYunhuImageUrl
 import kotlinx.coroutines.delay
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,20 +92,17 @@ fun DiscoverScreen(
     )
     val selectedIndex = tabs.indexOfFirst { it.first == uiState.currentTab }.coerceAtLeast(0)
 
-    Scaffold(
-        topBar = {
-            Column {
-                TopAppBar(title = { Text("发现") })
-                PrimaryTabRow(selectedTabIndex = selectedIndex) {
-                    tabs.forEachIndexed { index, (tab, label) ->
-                        Tab(
-                            selected = selectedIndex == index,
-                            onClick = { viewModel.selectTab(tab) },
-                            text = { Text(label) }
-                        )
-                    }
-                }
-            }
+    MiuixPageScaffold(
+        title = "发现",
+        topBarBottom = {
+            CapsuleTabBar(
+                tabs = tabs.map { it.second },
+                selectedTabIndex = selectedIndex,
+                onTabSelected = { index ->
+                    tabs.getOrNull(index)?.let { (tab, _) -> viewModel.selectTab(tab) }
+                },
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+            )
         }
     ) { contentPadding ->
         Box(
@@ -145,7 +140,6 @@ fun DiscoverScreen(
                     isRefreshing = uiState.isRefreshingGroups,
                     innerPadding = innerPadding,
                     onKeywordChange = viewModel::onKeywordChange,
-                    onClearKeyword = viewModel::clearKeyword,
                     onParentSelected = viewModel::selectParent,
                     onCategorySelected = viewModel::selectCategory,
                     onRefresh = viewModel::refreshGroups,
@@ -195,7 +189,11 @@ private fun BotsTabContent(
                             Modifier.fillParentMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("暂无内容", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = "暂无内容",
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                            )
                         }
                     }
                 }
@@ -217,17 +215,7 @@ private fun BotsTabContent(
 
                     if (bots.isNotEmpty()) {
                         item {
-                            Text(
-                                text = "推荐机器人",
-                                modifier = Modifier.padding(
-                                    start = 20.dp,
-                                    end = 20.dp,
-                                    top = 20.dp,
-                                    bottom = 8.dp
-                                ),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                            SmallTitle(text = "推荐机器人")
                         }
                         items(bots, key = { it.chatId }) { bot ->
                             BotRow(bot = bot, onClick = { onBotClick(bot) })
@@ -332,48 +320,25 @@ private fun BotRow(
     bot: BotStoreItem,
     onClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Avatar(url = bot.avatarUrl, size = 52.dp)
-        Spacer(Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = bot.nickname,
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+    val meta = if (bot.userCount > 0) "${bot.userCount} 人使用" else null
+    BasicComponent(
+        title = bot.nickname,
+        summary = listOfNotNull(
+            bot.introduction.takeIf { it.isNotBlank() },
+            meta
+        ).joinToString("\n").ifBlank { null },
+        startAction = {
+            Avatar(url = bot.avatarUrl, size = 52.dp)
+        },
+        endActions = {
+            Icon(
+                imageVector = AppIcons.ChevronRight,
+                contentDescription = null,
+                tint = MiuixTheme.colorScheme.onSurfaceVariantActions
             )
-            if (bot.introduction.isNotBlank()) {
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = bot.introduction,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            if (bot.userCount > 0) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = "${bot.userCount} 人使用",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        Icon(
-            imageVector = AppIcons.ChevronRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
+        },
+        onClick = onClick
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -388,30 +353,19 @@ private fun GroupsTabContent(
     isRefreshing: Boolean,
     innerPadding: PaddingValues,
     onKeywordChange: (String) -> Unit,
-    onClearKeyword: () -> Unit,
     onParentSelected: (GroupCategoryItem?) -> Unit,
     onCategorySelected: (Int) -> Unit,
     onRefresh: () -> Unit,
     onGroupClick: (GroupRecommendItem) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        OutlinedTextField(
+        MiuixSearchField(
             value = keyword,
             onValueChange = onKeywordChange,
+            placeholder = "搜索群聊",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            placeholder = { Text("搜索群聊") },
-            leadingIcon = { Icon(AppIcons.Search, contentDescription = null) },
-            trailingIcon = {
-                if (keyword.isNotEmpty()) {
-                    IconButton(onClick = onClearKeyword) {
-                        Icon(AppIcons.Close, contentDescription = "清除")
-                    }
-                }
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(28.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
         if (categories.isNotEmpty()) {
@@ -420,17 +374,17 @@ private fun GroupsTabContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item {
-                    FilterChip(
+                    DiscoverFilterChip(
+                        label = "全部",
                         selected = selectedParent == null,
-                        onClick = { onParentSelected(null) },
-                        label = { Text("全部") }
+                        onClick = { onParentSelected(null) }
                     )
                 }
                 items(categories, key = { it.id }) { category ->
-                    FilterChip(
+                    DiscoverFilterChip(
+                        label = category.name,
                         selected = selectedParent?.id == category.id,
-                        onClick = { onParentSelected(category) },
-                        label = { Text(category.name) }
+                        onClick = { onParentSelected(category) }
                     )
                 }
             }
@@ -444,17 +398,17 @@ private fun GroupsTabContent(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     item {
-                        FilterChip(
+                        DiscoverFilterChip(
+                            label = "全部",
                             selected = selectedCategoryId == parent.id,
-                            onClick = { onCategorySelected(parent.id) },
-                            label = { Text("全部") }
+                            onClick = { onCategorySelected(parent.id) }
                         )
                     }
                     items(subItems, key = { it.id }) { sub ->
-                        FilterChip(
+                        DiscoverFilterChip(
+                            label = sub.name,
                             selected = selectedCategoryId == sub.id,
-                            onClick = { onCategorySelected(sub.id) },
-                            label = { Text(sub.name) }
+                            onClick = { onCategorySelected(sub.id) }
                         )
                     }
                 }
@@ -484,7 +438,8 @@ private fun GroupsTabContent(
                             ) {
                                 Text(
                                     text = "没有找到相关群聊",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    style = MiuixTheme.textStyles.body2,
+                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                             }
                         }
@@ -513,47 +468,54 @@ private fun GroupRow(
     group: GroupRecommendItem,
     onClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Avatar(url = group.avatarUrl, size = 52.dp)
-        Spacer(Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = group.name,
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+    BasicComponent(
+        title = group.name,
+        summary = listOfNotNull(
+            group.introduction.takeIf { it.isNotBlank() },
+            groupMeta(group).ifBlank { null }
+        ).joinToString("\n").ifBlank { null },
+        startAction = {
+            Avatar(url = group.avatarUrl, size = 52.dp)
+        },
+        endActions = {
+            Icon(
+                imageVector = AppIcons.ChevronRight,
+                contentDescription = null,
+                tint = MiuixTheme.colorScheme.onSurfaceVariantActions
             )
-            if (group.introduction.isNotBlank()) {
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = group.introduction,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            val meta = groupMeta(group)
-            if (meta.isNotEmpty()) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = meta,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        Icon(
-            imageVector = AppIcons.ChevronRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        },
+        onClick = onClick
+    )
+}
+
+/** 应用自有的 Miuix 风格筛选胶囊（Miuix 未提供 Chip 组件）。 */
+@Composable
+private fun DiscoverFilterChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(
+                if (selected) MiuixTheme.colorScheme.primary
+                else MiuixTheme.colorScheme.secondaryVariant
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 7.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            style = MiuixTheme.textStyles.footnote1,
+            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
+            color = if (selected) {
+                MiuixTheme.colorScheme.onPrimary
+            } else {
+                MiuixTheme.colorScheme.onSecondaryVariant
+            },
+            maxLines = 1
         )
     }
 }
